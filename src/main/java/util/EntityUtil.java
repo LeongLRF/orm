@@ -7,9 +7,7 @@ import core.ColumnInfo;
 import core.TableInfo;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class EntityUtil {
 
@@ -19,7 +17,7 @@ public class EntityUtil {
         TableInfo<T> info = new TableInfo<>();
         info.setCls(cls);
         info.setTableName(table.name());
-        List<ColumnInfo> columnInfos = new ArrayList<>();
+        Map<String,ColumnInfo> columnInfos = new HashMap<>();
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)){
                 Id primaryKey = it.getAnnotation(Id.class);
@@ -27,7 +25,7 @@ public class EntityUtil {
             }
             if (it.isAnnotationPresent(Column.class)){
                 Column column = it.getAnnotation(Column.class);
-                columnInfos.add(ColumnInfo.createColumn(column.name(),column.jdbcType(),ColumnInfo.NORMAL_KEY));
+                columnInfos.put(it.getName(),ColumnInfo.createColumn(column.name(),column.jdbcType(),ColumnInfo.NORMAL_KEY));
             }
         });
         info.setColumns(columnInfos);

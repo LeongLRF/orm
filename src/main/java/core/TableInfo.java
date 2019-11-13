@@ -2,6 +2,8 @@ package core;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
+
 /**
  * @author Leong
  * 表
@@ -22,7 +24,7 @@ public class TableInfo<T> {
     /**
      * 字段
      */
-    private List<ColumnInfo> columns;
+    private Map<String,ColumnInfo> columns;
 
     /**
      * 主键
