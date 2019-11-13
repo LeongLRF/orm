@@ -1,9 +1,13 @@
 package core;
 
+import java.sql.Connection;
+
 /**
  * @author Leong
  */
 public interface IDbConnection {
 
-    <T>ISelectQuery form(Class<T> cls);
+    Connection getConnection();
+
+    <T>ISelectQuery<T> form(Class<T> cls);
 }
