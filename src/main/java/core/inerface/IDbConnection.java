@@ -2,6 +2,7 @@ package core.inerface;
 
 import annotation.Id;
 
+import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -13,6 +14,8 @@ import java.util.List;
 public interface IDbConnection {
 
     Connection getConnection();
+
+    DataSource getDataSource();
 
     <T>ISelectQuery<T> form(Class<T> cls);
 

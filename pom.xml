@@ -56,5 +56,10 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.4</version>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>						<!-- mysql的项目名称，类似包名-->
+            <artifactId>mysql-connector-java</artifactId>	<!-- 模块名称 -->
+            <version>8.0.17</version>						<!-- 当前项目版本号-->
+        </dependency>
     </dependencies>
 </project>

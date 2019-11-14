@@ -45,6 +45,8 @@ public interface ISelectQuery<T> {
 
     ISelectQuery<T> inSql(String column,String sql,@Nullable Object ...values);
 
+    ISelectQuery<T> select(String column);
+
     List<T> toList();
 
     T one();
