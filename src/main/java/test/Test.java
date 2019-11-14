@@ -12,14 +12,7 @@ import java.util.stream.Collectors;
 
 public class Test {
     public static void main(String[] args) {
-//        TableInfo<User> tableInfo = EntityUtil.getTableInfo(User.class);
-//        IStatement statement = Statement.createInsertStatement(tableInfo);
-//        System.out.println( statement.getSql());
-        User user = new User();
-        user.setName("123");
-        user.setTrueName("123");
-        user.setFaker("00");
-        insert(user);
+
     }
 
     public static Class getClass(Object entity){
