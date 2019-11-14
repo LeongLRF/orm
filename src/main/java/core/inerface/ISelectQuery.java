@@ -1,8 +1,10 @@
-package core;
+package core.inerface;
 
 import com.sun.istack.internal.Nullable;
+import core.TableInfo;
 
 import java.io.Serializable;
+import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -10,9 +12,29 @@ import java.util.List;
  */
 public interface ISelectQuery<T> {
 
+    /**
+     * 数据库连接
+     */
+    IDbConnection getConnection();
 
+    /**
+     * 表信息
+     */
+    TableInfo<T> getTableInfo();
+
+    /**
+     * 查询参数
+     */
+    Object[] getParams();
+
+    /**
+     * 查询sql
+     */
     String getSql();
 
+    /**
+     * 查询类
+     */
     Class<T> getCls();
 
     ISelectQuery<T> where(String column, Object value);
