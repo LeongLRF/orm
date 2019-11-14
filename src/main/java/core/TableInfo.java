@@ -3,6 +3,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Leong
@@ -30,5 +31,10 @@ public class TableInfo<T> {
      * 主键
      */
     private ColumnInfo primaryKey;
+
+
+    public List<String> columns(){
+        return columns.values().stream().map(ColumnInfo::getName).collect(Collectors.toList());
+    }
 
 }

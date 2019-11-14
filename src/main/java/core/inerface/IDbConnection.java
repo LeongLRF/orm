@@ -24,5 +24,6 @@ public interface IDbConnection {
 
     <T>List<T> getByIds(Class<T> cls ,List<? extends Serializable> ids);
 
+    <T>int insert(T entity);
 
 }

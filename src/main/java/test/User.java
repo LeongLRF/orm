@@ -17,4 +17,7 @@ public class User {
 
     @Column(name = "trueName")
     String trueName;
+
+    @Column(name = "age")
+    int age;
 }

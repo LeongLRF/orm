@@ -25,7 +25,7 @@ public interface ISelectQuery<T> {
     /**
      * 查询参数
      */
-    Object[] getParams();
+    List<Object> getParams();
 
     /**
      * 查询sql

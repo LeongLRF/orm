@@ -24,7 +24,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     private String sql;
     private Class<T> cls;
     private TableInfo<T> tableInfo;
-    private Object[] params;
+    private List<Object> params;
     private List<IStatement> wheres;
     private String selects = "*";
 

@@ -2,6 +2,8 @@ package core;
 
 import core.inerface.IStatement;
 import lombok.Data;
+import util.StringPool;
+
 /**
  * @author Leong
  */
@@ -12,19 +14,25 @@ public class Statement implements IStatement {
 
     Object[] params;
 
-    public static IStatement createInsertStatement(TableInfo tableInfo) {
+    public Statement(String sql) {
+        this.sql = sql;
+    }
+
+    public static Statement createInsertStatement(TableInfo tableInfo) {
+        String sql = StringPool.INSERT + StringPool.SPACE +
+                tableInfo.getTableName();
+        return new Statement(sql);
+    }
+
+    public Statement createUpdateStatement() {
         return null;
     }
 
-    public IStatement createUpdateStatement() {
+    public Statement createDeleteStatement() {
         return null;
     }
 
-    public IStatement createDeleteStatement() {
-        return null;
-    }
-
-    public IStatement where(String column, String op, Object values) {
+    public Statement where(String column, String op, Object values) {
         return null;
     }
 }

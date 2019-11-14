@@ -68,4 +68,6 @@ public interface StringPool {
     String HTML_QUOTE = "&quot;";
     String HTML_LT = "&lt;";
     String HTML_GT = "&gt;";
+
+    String INSERT = "INSERT INTO";
 }
