@@ -27,8 +27,11 @@ public class Test {
             e.printStackTrace();
         }
         DbConnection db = new DbConnection(connection);
-        db.form(User.class).whereEq("id",1).whereEq("name","Leong")
-                .select("id").toList();
+        User user = new User();
+        user.setTrueName("555");
+        db.insert(user);
+        System.out.println(user);
+
 
 
     }
