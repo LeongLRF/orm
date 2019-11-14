@@ -13,16 +13,21 @@ import java.util.*;
 
 public class EntityUtil {
 
-    public static <T> TableInfo<T> getTableInfo(Class<T> cls) {
+    public static <T> TableInfo getTableInfo(Class<T> cls) {
         Field[] fields = cls.getDeclaredFields();
         Table table = cls.getAnnotation(Table.class);
-        TableInfo<T> info = new TableInfo<>();
+        TableInfo info = new TableInfo();
         info.setCls(cls);
         info.setTableName(table.name());
         Map<String, ColumnInfo> columnInfos = new HashMap<>();
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
                 Id primaryKey = it.getAnnotation(Id.class);
+                if (primaryKey.idType().equals("auto")){
+                    info.setAutoIncrement(true);
+                } else {
+                    info.setAutoIncrement(false);
+                }
                 info.setPrimaryKey(ColumnInfo.createColumn(primaryKey.value(), primaryKey.type(), ColumnInfo.PRIMARY_KEY));
             }
             if (it.isAnnotationPresent(Column.class)) {

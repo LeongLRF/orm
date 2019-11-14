@@ -20,7 +20,7 @@ public interface ISelectQuery<T> {
     /**
      * 表信息
      */
-    TableInfo<T> getTableInfo();
+    TableInfo getTableInfo();
 
     /**
      * 查询参数

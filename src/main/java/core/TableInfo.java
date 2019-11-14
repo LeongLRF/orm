@@ -10,12 +10,12 @@ import java.util.stream.Collectors;
  * 表
  */
 @Data
-public class TableInfo<T> {
+public class TableInfo {
 
     /**
      * 类名
      */
-    Class<T> cls;
+    Class<?> cls;
 
     /**
      * 表名
@@ -32,6 +32,10 @@ public class TableInfo<T> {
      */
     private ColumnInfo primaryKey;
 
+    /**
+     * 是否自增
+     */
+    private boolean autoIncrement;
 
     public List<String> columns(){
         return columns.values().stream().map(ColumnInfo::getName).collect(Collectors.toList());

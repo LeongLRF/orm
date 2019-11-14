@@ -23,7 +23,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     private IDbConnection connection;
     private String sql;
     private Class<T> cls;
-    private TableInfo<T> tableInfo;
+    private TableInfo tableInfo;
     private List<Object> params;
     private List<IStatement> wheres;
     private String selects = "*";

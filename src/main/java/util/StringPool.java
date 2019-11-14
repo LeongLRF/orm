@@ -70,4 +70,5 @@ public interface StringPool {
     String HTML_GT = "&gt;";
 
     String INSERT = "INSERT INTO";
+    String VALUES = " VALUES ";
 }

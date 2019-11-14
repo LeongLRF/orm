@@ -20,4 +20,6 @@ public class User {
 
     @Column(name = "age")
     int age;
+
+    String faker;
 }
