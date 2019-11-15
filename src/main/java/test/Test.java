@@ -28,10 +28,8 @@ public class Test {
             e.printStackTrace();
         }
         DbConnection db = new DbConnection(connection);
-        User user = new User();
-
-        List<User> users = db.form(User.class).in("id", Arrays.asList(1,2,3)).toList();
-        System.out.println(users);
+        User user = db.form(User.class).whereEq("trueName","Leong").whereEq("name","liang").one();
+        System.out.println(user);
     }
 
     public static Class getClass(Object entity){

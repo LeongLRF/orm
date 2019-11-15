@@ -96,6 +96,24 @@ public class DbConnection implements IDbConnection {
         }
         return false;
     }
+    public <T> List<T> execute(IStatement statement,Class<T> cls){
+        try {
+            long start = System.currentTimeMillis();
+            logger.info("Execute Select With Sql : "+statement.getSql());
+            logger.info("Params : "+statement.getParams().toString());
+            PreparedStatement preparedStatement = connection.prepareStatement(statement.getSql());
+            setParams(preparedStatement,statement.getParams());
+            ResultSet rs = preparedStatement.executeQuery();
+            List<Map<String,Object>> result = fetchResultSet(rs);
+            long end = System.currentTimeMillis();
+            logger.info("Cost : " + (end-start)+"ms");
+            return EntityUtil.resultSetToEntity(cls,result);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @Override
     public <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values) {
@@ -104,7 +122,13 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> T getById(Class<T> cls, Serializable id) {
-        return null;
+        Statement statement = Statement.createSelectStatement(cls,id);
+        List<T> list = execute(statement,cls);
+        if (list.isEmpty()){
+            return null;
+        } else {
+            return list.get(0);
+        }
     }
 
     @Override

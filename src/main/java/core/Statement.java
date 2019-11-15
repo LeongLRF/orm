@@ -7,6 +7,7 @@ import lombok.Data;
 import util.EntityUtil;
 import util.StringPool;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,6 +65,14 @@ public class Statement implements IStatement {
 
     public static Statement createDeleteStatement() {
         return null;
+    }
+
+    public static Statement createSelectStatement(Class<?> cls, Serializable id){
+        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
+        Statement statement = new Statement();
+        statement.sql = "SELECT * FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " = ?";
+        statement.params.add(id);
+        return statement;
     }
 
 
