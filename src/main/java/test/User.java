@@ -12,6 +12,7 @@ public class User {
     @Id("id")
     long id;
 
+
     @Column(name = "name")
     String name;
 
@@ -22,4 +23,5 @@ public class User {
     int age;
 
     String faker;
+
 }

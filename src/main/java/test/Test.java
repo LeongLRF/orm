@@ -19,21 +19,18 @@ public class Test {
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            String url = "jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
+            String url = "jdbc:mysql://59.110.171.118:3306/test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
             String username = "root";
-            String password = "123456";
+            String password = "Liang45623+1628";
             connection = DriverManager.getConnection(url,username,password);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
         DbConnection db = new DbConnection(connection);
         User user = new User();
-        user.setTrueName("555");
-        db.insert(user);
-        System.out.println(user);
 
-
-
+        List<User> users = db.form(User.class).toList();
+        System.out.println(users);
     }
 
     public static Class getClass(Object entity){

@@ -40,7 +40,11 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         this.cls = cls;
         this.connection = connection;
         this.tableInfo = EntityUtil.getTableInfo(cls);
-        this.sql = "SELECT " + getSelects() + " FROM " + tableInfo.getTableName() + " WHERE 1=1";
+        refreshSql();
+    }
+
+    public void refreshSql(){
+        this.sql = "SELECT " + getSelects() + " FROM " + tableInfo.getTableName();
     }
 
     @Override
@@ -62,6 +66,14 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return this;
     }
 
+    public ISelectQuery<T> whereEq(boolean condition, String column, Object value) {
+        if (condition) {
+            return whereEq(column, value);
+        } else {
+            return this;
+        }
+    }
+
     @Override
     public ISelectQuery<T> inSql(String column, String sql, Object... values) {
         return null;
@@ -76,13 +88,11 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     @Override
     public List<T> toList() {
         long start = System.currentTimeMillis();
-        if (!wheres.isEmpty()) {
-            sql = sql + " And " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND "));
-        }
-        ResultSet rs = connection.execute(this);
+        makeSql(wheres);
+        List<T> rs = connection.execute(this);
         long end = System.currentTimeMillis();
-        logger.info("Cost : "+(end - start) + "ms");
-        return null;
+        logger.info("Cost : " + (end - start) + "ms");
+        return rs;
     }
 
     @Override
@@ -90,7 +100,13 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return null;
     }
 
-    public String makeSql(List<IStatement> statements) {
-        return this.sql;
+    public void makeSql(List<IStatement> statements) {
+        refreshSql();
+        if (!statements.isEmpty()) {
+            sql = sql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND "));
+        }
+        if (!statements.isEmpty()){
+            params.addAll(statements.stream().flatMap(it -> it.getParams().stream()).collect(Collectors.toList()));
+        }
     }
 }

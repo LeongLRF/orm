@@ -4,6 +4,7 @@ import annotation.Column;
 import annotation.Id;
 import annotation.Table;
 import core.ColumnInfo;
+import core.DbConnection;
 import core.TableInfo;
 
 import java.lang.reflect.Field;
@@ -23,7 +24,7 @@ public class EntityUtil {
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
                 Id primaryKey = it.getAnnotation(Id.class);
-                if (primaryKey.idType().equals("auto")){
+                if (primaryKey.idType().equals("auto")) {
                     info.setAutoIncrement(true);
                 } else {
                     info.setAutoIncrement(false);
@@ -44,19 +45,49 @@ public class EntityUtil {
         Field[] fields = cls.getDeclaredFields();
         List<Object> values = new ArrayList<>();
         for (Field field : fields) {
-            if (field.isAnnotationPresent(Column.class)){
+            if (field.isAnnotationPresent(Column.class)) {
                 String name = field.getName();
                 name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
-                Method method = null;
+                Method method;
                 try {
-                     method = cls.getMethod("get"+name);
+                    method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
-                    values.add(TypeConverter.convert(method.invoke(entity),type));
+                    values.add(TypeConverter.convert(method.invoke(entity), type));
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
             }
         }
         return values;
+    }
+
+    public static <T> List<T> resultSetToEntity(Class<T> cls, List<Map<String, Object>> result) {
+        Field[] fields = cls.getDeclaredFields();
+        List<T> list = new ArrayList<>();
+        for (Map<String, Object> map : result) {
+            T t = DbConnection.createEntity(cls);
+            for (Field field : fields) {
+                if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(Column.class)) {
+                    String dbName;
+                    if (field.isAnnotationPresent(Id.class)) {
+                        Id id = field.getAnnotation(Id.class);
+                        dbName = id.value();
+                    } else {
+                        Column column = field.getAnnotation(Column.class);
+                        dbName = column.name();
+                    }
+                    String name = field.getName();
+                    name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
+                    try {
+                        Method method = cls.getMethod("set" + name, field.getType());
+                        method.invoke(t, map.get(dbName));
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            list.add(t);
+        }
+        return list;
     }
 }

@@ -19,7 +19,7 @@ public interface IDbConnection {
 
     <T>ISelectQuery<T> form(Class<T> cls);
 
-    ResultSet execute(ISelectQuery selectQuery);
+    <T> List<T> execute(ISelectQuery<T> selectQuery);
 
     <T>List<T> sqlQuery(Class<T> cls,String sql,Object ...values);
 

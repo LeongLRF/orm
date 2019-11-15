@@ -9,11 +9,11 @@ import util.EntityUtil;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,8 +64,18 @@ public class DbConnection implements IDbConnection {
     }
 
     @Override
-    public ResultSet execute(ISelectQuery selectQuery) {
-        logger.info(selectQuery.getSql());
+    public <T> List<T> execute(ISelectQuery<T> selectQuery) {
+        logger.info("Execute Select With Sql : "+selectQuery.getSql());
+        logger.info("Params : " +selectQuery.getParams().toString());
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(selectQuery.getSql());
+            setParams(preparedStatement,selectQuery.getParams());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Map<String,Object>> result = fetchResultSet(resultSet);
+            return EntityUtil.resultSetToEntity(selectQuery.getCls(),result);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -127,5 +137,30 @@ public class DbConnection implements IDbConnection {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public static List<Map<String, Object>> fetchResultSet(ResultSet rs) {
+        ResultSetMetaData meta;
+        try {
+            meta = rs.getMetaData();
+            List<String> fields = new ArrayList<>();
+            int count = 0;
+            int bound = meta.getColumnCount();
+            for (int i = 0; i < bound; i++) {
+                fields.add(meta.getColumnName(i + 1));
+            }
+            List<Map<String, Object>> re = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> e = new HashMap<>();
+                for (int i = 0; i < bound; i++) {
+                    e.put(fields.get(i), rs.getObject(i + 1));
+                }
+                re.add(e);
+            }
+            return re;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
