@@ -71,4 +71,5 @@ public interface StringPool {
 
     String INSERT = "INSERT INTO";
     String VALUES = " VALUES ";
+    String AUTO = "auto";
 }

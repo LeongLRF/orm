@@ -24,7 +24,7 @@ public class EntityUtil {
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
                 Id primaryKey = it.getAnnotation(Id.class);
-                if (primaryKey.idType().equals("auto")) {
+                if (primaryKey.idType().equals(StringPool.AUTO)) {
                     info.setAutoIncrement(true);
                 } else {
                     info.setAutoIncrement(false);
