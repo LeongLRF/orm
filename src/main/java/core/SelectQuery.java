@@ -1,7 +1,6 @@
 package core;
 
-import com.mysql.cj.protocol.Resultset;
-import core.TableInfo;
+import com.mysql.cj.util.StringUtils;
 import core.inerface.IDbConnection;
 import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
@@ -11,9 +10,6 @@ import org.slf4j.LoggerFactory;
 import util.EntityUtil;
 import util.StringPool;
 
-import javax.xml.transform.Result;
-import java.io.Serializable;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +30,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     private List<Object> params = new ArrayList<>();
     private List<IStatement> wheres = new ArrayList<>();
     private String selects = "*";
+    private String orderBy = "";
 
 
     public SelectQuery(IDbConnection connection, Class<T> cls) {
@@ -53,8 +50,14 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     }
 
     @Override
-    public ISelectQuery<T> in(String column, List<? extends Serializable> ids) {
-        return null;
+    public ISelectQuery<T> in(String column, List<Object> values) {
+        if (!values.isEmpty()){
+            Statement statement = new Statement();
+            statement.sql = column + " in " + DbConnection.createParameterPlaceHolder(values.size());
+            statement.params.addAll(values);
+            this.wheres.add(statement);
+        }
+        return this;
     }
 
     @Override
@@ -97,13 +100,25 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public T one() {
-        return null;
+        List<T> list = toList();
+        if (list.isEmpty()){
+            return null;
+        }
+        return list.get(0);
+    }
+
+    @Override
+    public ISelectQuery<T> orderBy(String orderBy) {
+        if (!StringUtils.isNullOrEmpty(orderBy)){
+            this.orderBy = " order by " + orderBy;
+        }
+        return this;
     }
 
     public void makeSql(List<IStatement> statements) {
         refreshSql();
         if (!statements.isEmpty()) {
-            sql = sql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND "));
+            sql = sql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND ")) + orderBy;
         }
         if (!statements.isEmpty()){
             params.addAll(statements.stream().flatMap(it -> it.getParams().stream()).collect(Collectors.toList()));

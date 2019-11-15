@@ -3,6 +3,7 @@ package util;
 import annotation.Column;
 import annotation.Id;
 import annotation.Table;
+import com.alibaba.fastjson.JSON;
 import core.ColumnInfo;
 import core.DbConnection;
 import core.TableInfo;
@@ -46,13 +47,18 @@ public class EntityUtil {
         List<Object> values = new ArrayList<>();
         for (Field field : fields) {
             if (field.isAnnotationPresent(Column.class)) {
+                Column column = field.getAnnotation(Column.class);
                 String name = field.getName();
                 name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                 Method method;
                 try {
                     method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
-                    values.add(TypeConverter.convert(method.invoke(entity), type));
+                    if (column.jdbcType().equals(StringPool.JSON)){
+                        values.add(JSON.toJSONString(method.invoke(entity)));
+                    } else {
+                        values.add(TypeConverter.convert(method.invoke(entity), type));
+                    }
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }

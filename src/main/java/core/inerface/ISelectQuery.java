@@ -39,7 +39,7 @@ public interface ISelectQuery<T> {
 
     ISelectQuery<T> where(String column, Object value);
 
-    ISelectQuery<T> in(String column, List<? extends Serializable> ids);
+    ISelectQuery<T> in(String column, List<Object> ids);
 
     ISelectQuery<T> whereEq(String column, Object value);
 
@@ -50,4 +50,6 @@ public interface ISelectQuery<T> {
     List<T> toList();
 
     T one();
+
+    ISelectQuery<T> orderBy(String orderBy);
 }

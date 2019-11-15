@@ -10,6 +10,7 @@ import util.EntityUtil;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ public class Test {
         DbConnection db = new DbConnection(connection);
         User user = new User();
 
-        List<User> users = db.form(User.class).toList();
+        List<User> users = db.form(User.class).in("id", Arrays.asList(1,2,3)).toList();
         System.out.println(users);
     }
 
