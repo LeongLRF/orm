@@ -114,6 +114,9 @@ public class DbConnection implements IDbConnection {
         }
         return null;
     }
+    public <T> List<T> execute(String sql, Object ... values){
+        return null;
+    }
 
     @Override
     public <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values) {
