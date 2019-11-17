@@ -90,12 +90,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public List<T> toList() {
-        long start = System.currentTimeMillis();
-        makeSql(wheres);
-        List<T> rs = connection.execute(this);
-        long end = System.currentTimeMillis();
-        logger.info("Cost : " + (end - start) + "ms");
-        return rs;
+        return connection.gen_execute(DbConnection.makeSql(this));
     }
 
     @Override

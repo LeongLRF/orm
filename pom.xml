@@ -61,5 +61,10 @@
             <artifactId>mysql-connector-java</artifactId>	<!-- 模块名称 -->
             <version>8.0.17</version>						<!-- 当前项目版本号-->
         </dependency>
+        <dependency>
+            <groupId>org.functionaljava</groupId>
+            <artifactId>functionaljava</artifactId>
+            <version>4.7</version>
+        </dependency>
     </dependencies>
 </project>

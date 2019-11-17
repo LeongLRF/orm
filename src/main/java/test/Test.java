@@ -1,6 +1,7 @@
 package test;
 
 
+import config.Configuration;
 import core.DbConnection;
 import core.Statement;
 import core.TableInfo;
@@ -11,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,9 +29,13 @@ public class Test {
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
-        DbConnection db = new DbConnection(connection);
-        User user = db.form(User.class).whereEq("trueName","Leong").whereEq("name","liang").one();
-        System.out.println(user);
+        Configuration config = new Configuration(){{
+           debug = true;
+        }};
+        DbConnection db = new DbConnection(connection,config);
+            List<User> users = db.sqlQuery(User.class,"select * from user");
+            List<User> users2 = db.sqlQuery(User.class,"select * from user");
+            System.out.println(users2);
     }
 
     public static Class getClass(Object entity){

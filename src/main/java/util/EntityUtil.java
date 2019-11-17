@@ -75,18 +75,26 @@ public class EntityUtil {
             for (Field field : fields) {
                 if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(Column.class)) {
                     String dbName;
+                    String type;
                     if (field.isAnnotationPresent(Id.class)) {
                         Id id = field.getAnnotation(Id.class);
                         dbName = id.value();
+                        type = id.type();
                     } else {
                         Column column = field.getAnnotation(Column.class);
                         dbName = column.name();
+                        type = column.jdbcType();
                     }
                     String name = field.getName();
                     name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                     try {
                         Method method = cls.getMethod("set" + name, field.getType());
-                        method.invoke(t, map.get(dbName));
+                        if (type.equals(StringPool.JSON)){
+                            method.invoke(t, JSON.parseObject(map.get(dbName).toString(),field.getType()));
+                        } else {
+                            method.invoke(t,map.get(dbName));
+                        }
+
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }

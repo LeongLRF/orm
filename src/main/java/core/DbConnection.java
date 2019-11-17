@@ -1,19 +1,21 @@
 package core;
 
+import config.Configuration;
 import core.inerface.IDbConnection;
 import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
+import fj.P;
+import fj.P3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.EntityUtil;
+import util.Model;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,9 +29,19 @@ public class DbConnection implements IDbConnection {
     private Connection connection;
     private boolean onTransaction = false;
     private DataSource dataSource;
+    private Configuration configuration;
+    private Map<String,List<Object>> cache;
 
     public DbConnection(Connection connection) {
         this.connection = connection;
+        logger.info("init DbConnection with default model");
+    }
+    public DbConnection(Connection connection,Configuration configuration) {
+        this.connection = connection;
+        this.configuration = configuration;
+        if (configuration.enableCache){
+            cache = new HashMap<>(50);
+        }
         logger.info("init DbConnection with default model");
     }
 
@@ -39,13 +51,14 @@ public class DbConnection implements IDbConnection {
         logger.info("init DbConnection with DataSource : " + dataSource.getClass().getName());
     }
 
-    public static <T> T createEntity(Class<T> cls) {
-        try {
-            return cls.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+    public DbConnection(DataSource dataSource,Configuration configuration) throws SQLException {
+        this.dataSource = dataSource;
+        this.configuration = configuration;
+        this.connection = dataSource.getConnection();
+        if (configuration.enableCache){
+            cache = new HashMap<>(50);
         }
-        return null;
+        logger.info("Init DbConnection With Configuration");
     }
 
     @Override
@@ -63,70 +76,88 @@ public class DbConnection implements IDbConnection {
         return new SelectQuery<>(this, cls);
     }
 
-    @Override
-    public <T> List<T> execute(ISelectQuery<T> selectQuery) {
-        logger.info("Execute Select With Sql : "+selectQuery.getSql());
-        logger.info("Params : " +selectQuery.getParams().toString());
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(selectQuery.getSql());
-            setParams(preparedStatement,selectQuery.getParams());
-            ResultSet resultSet = preparedStatement.executeQuery();
-            List<Map<String,Object>> result = fetchResultSet(resultSet);
-            return EntityUtil.resultSetToEntity(selectQuery.getCls(),result);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
-    public boolean execute(IStatement statement, boolean isAuto) {
+    private boolean execute(IStatement statement, boolean isAuto) {
         int genflag = java.sql.Statement.NO_GENERATED_KEYS;
         if (isAuto) {
             genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
         }
         PreparedStatement preparedStatement;
+        if (debugModel(configuration)){
+            logger.info("Execute sql : " + statement.getSql());
+            logger.info("Params : " + statement.getParams().toString());
+        }
         try {
             preparedStatement = connection.prepareStatement(statement.getSql(), genflag);
             setParams(preparedStatement, statement.getParams());
-            logger.info("Execute sql : " + statement.getSql());
-            logger.info("Params : " + statement.getParams().toString());
             return preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
-    public <T> List<T> execute(IStatement statement,Class<T> cls){
+    @SuppressWarnings("all")
+    public <T> List<T> gen_execute(P3<Class<T>, String, List<Object>> p3){
+        if (cache!=null&&cache.get(p3._2())!=null){
+            logger.info("get data from cache");
+            long start = System.currentTimeMillis();
+            List<T> list = (List<T>) cache.get(p3._2());
+            long end = System.currentTimeMillis();
+            logger.info("Cost : "+(end-start)+"ms");
+            return list;
+        }
+        PreparedStatement preparedStatement = null;
         try {
             long start = System.currentTimeMillis();
-            logger.info("Execute Select With Sql : "+statement.getSql());
-            logger.info("Params : "+statement.getParams().toString());
-            PreparedStatement preparedStatement = connection.prepareStatement(statement.getSql());
-            setParams(preparedStatement,statement.getParams());
-            ResultSet rs = preparedStatement.executeQuery();
-            List<Map<String,Object>> result = fetchResultSet(rs);
+            if (configuration.model== Model.POOL_MODEL){
+                connection = dataSource.getConnection();
+            }
+             preparedStatement = connection.prepareStatement(p3._2());
+            setParams(preparedStatement,p3._3());
+            List<Map<String,Object>> result = fetchResultSet(preparedStatement.executeQuery());
+            List<T> list = EntityUtil.resultSetToEntity(p3._1(),result);
+            cache.put(p3._2(), (List<Object>) list);
             long end = System.currentTimeMillis();
-            logger.info("Cost : " + (end-start)+"ms");
-            return EntityUtil.resultSetToEntity(cls,result);
-
+            logger.info("Execute SQL : "+ p3._2());
+            logger.info("Params : "+p3._3().toString());
+            logger.info("Cost : "+(end - start)+"ms");
+            return list;
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            release(connection,preparedStatement);
         }
         return null;
     }
-    public <T> List<T> execute(String sql, Object ... values){
-        return null;
+
+    private void release(Connection connection, PreparedStatement preparedStatement){
+        if (preparedStatement!=null){
+            try {
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            preparedStatement = null;
+        }
+        if (connection!=null){
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            connection = null;
+        }
     }
 
     @Override
     public <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values) {
-        return null;
+        return gen_execute(P.p(cls,sql,Arrays.asList(values)));
     }
 
     @Override
     public <T> T getById(Class<T> cls, Serializable id) {
         Statement statement = Statement.createSelectStatement(cls,id);
-        List<T> list = execute(statement,cls);
+        List<T> list = gen_execute(makeSql(statement,cls));
         if (list.isEmpty()){
             return null;
         } else {
@@ -135,17 +166,63 @@ public class DbConnection implements IDbConnection {
     }
 
     @Override
-    public <T> List<T> getByIds(Class<T> cls, List<? extends Serializable> ids) {
-        return null;
+    public <T> List<T> getByIds(Class<T> cls, List<Object> ids) {
+        SelectQuery<T> selectQuery = new SelectQuery<>(this,cls);
+        selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(),ids);
+        return gen_execute(makeSql(selectQuery));
     }
 
     @Override
     public <T> int insert(T entity) {
+        long start = System.currentTimeMillis();
         Statement statement = Statement.createInsertStatement(entity);
         if (execute(statement, statement.auto)) {
             return 1;
         }
+        long end = System.currentTimeMillis();
+        logger.info("Cost : "+(end-start)+"ms");
         return 0;
+    }
+
+    @Override
+    public <T> int insert(List<T> entities) {
+        logger.info("open transaction");
+        openTransaction((connection) -> entities.forEach(this::insert));
+        return 0;
+    }
+
+    @Override
+    public void openTransaction(Consumer<Connection> f) {
+        try {
+            long start = System.currentTimeMillis();
+            connection.setAutoCommit(onTransaction);
+            f.accept(connection);
+            logger.info("commit");
+            connection.commit();
+            long end = System.currentTimeMillis();
+            logger.info("Cost : " + (end -start)+"ms");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public static <T> P3<Class<T>,String,List<Object>> makeSql(IStatement statement,Class<T> cls){
+        String sql = statement.getSql();
+        List<Object> params = statement.getParams();
+        return P.p(cls,sql,params);
+    }
+
+    public static <T> P3<Class<T>,String,List<Object>> makeSql(ISelectQuery<T> selectQuery){
+        selectQuery.makeSql(selectQuery.getWheres());
+        String sql = selectQuery.getSql();
+        List<Object> params = selectQuery.getParams();
+        Class<T> cls = selectQuery.getCls();
+        return P.p(cls,sql,params);
     }
 
 
@@ -188,6 +265,16 @@ public class DbConnection implements IDbConnection {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
+    }
+    private boolean debugModel(Configuration configuration){
+        return configuration!=null && configuration.isDebug();
+    }
+    public static <T> T createEntity(Class<T> cls) {
+        try {
+            return cls.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
