@@ -33,9 +33,12 @@ public class Test {
            debug = true;
         }};
         DbConnection db = new DbConnection(connection,config);
-            List<User> users = db.sqlQuery(User.class,"select * from user");
-            List<User> users2 = db.sqlQuery(User.class,"select * from user");
-            System.out.println(users2);
+           User user = new User();
+           user.setName("123");
+           User user1 = new User();
+           user.setTrueName("4657");
+           user.setUser(user1);
+           db.insert(user);
     }
 
     public static Class getClass(Object entity){

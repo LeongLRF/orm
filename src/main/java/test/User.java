@@ -4,9 +4,10 @@ import annotation.Column;
 import annotation.Id;
 import annotation.Table;
 import lombok.Data;
+import util.JdbcType;
 
 @Data
-@Table(name ="user")
+@Table(name = "user")
 public class User {
 
     @Id("id")
@@ -21,6 +22,9 @@ public class User {
 
     @Column(name = "age")
     int age;
+
+    @Column(name = "user", jdbcType = JdbcType.JSON)
+    User user;
 
     String faker;
 

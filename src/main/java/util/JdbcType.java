@@ -8,4 +8,5 @@ public interface JdbcType {
 
     String UNDEFINE = "";
     String DEFAULT_PK = "bigint";
+    String JSON = "JSON";
 }

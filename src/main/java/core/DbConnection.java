@@ -116,7 +116,7 @@ public class DbConnection implements IDbConnection {
             setParams(preparedStatement,p3._3());
             List<Map<String,Object>> result = fetchResultSet(preparedStatement.executeQuery());
             List<T> list = EntityUtil.resultSetToEntity(p3._1(),result);
-            cache.put(p3._2(), (List<Object>) list);
+            if (cache!=null) cache.put(p3._2(), (List<Object>) list);
             long end = System.currentTimeMillis();
             logger.info("Execute SQL : "+ p3._2());
             logger.info("Params : "+p3._3().toString());
