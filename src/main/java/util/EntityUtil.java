@@ -25,11 +25,7 @@ public class EntityUtil {
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
                 Id primaryKey = it.getAnnotation(Id.class);
-                if (primaryKey.idType().equals(StringPool.AUTO)) {
-                    info.setAutoIncrement(true);
-                } else {
-                    info.setAutoIncrement(false);
-                }
+                info.setAutoIncrement(primaryKey.idType().equals(StringPool.AUTO));
                 info.setPrimaryKey(ColumnInfo.createColumn(primaryKey.value(), primaryKey.type(), ColumnInfo.PRIMARY_KEY));
             }
             if (it.isAnnotationPresent(Column.class)) {
@@ -54,7 +50,7 @@ public class EntityUtil {
                 try {
                     method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
-                    if (column.jdbcType().equals(StringPool.JSON)){
+                    if (column.jdbcType().equals(StringPool.JSON)) {
                         values.add(JSON.toJSONString(method.invoke(entity)));
                     } else {
                         values.add(TypeConverter.convert(method.invoke(entity), type));
@@ -89,10 +85,10 @@ public class EntityUtil {
                     name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                     try {
                         Method method = cls.getMethod("set" + name, field.getType());
-                        if (type.equals(StringPool.JSON)){
-                            method.invoke(t, JSON.parseObject(map.get(dbName).toString(),field.getType()));
+                        if (type.equals(StringPool.JSON)) {
+                            method.invoke(t, JSON.parseObject(map.get(dbName).toString(), field.getType()));
                         } else {
-                            method.invoke(t,map.get(dbName));
+                            method.invoke(t, map.get(dbName));
                         }
 
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

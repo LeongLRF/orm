@@ -40,7 +40,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         refreshSql();
     }
 
-    public void refreshSql(){
+    private void refreshSql(){
         this.sql = "SELECT " + getSelects() + " FROM " + tableInfo.getTableName();
     }
 
