@@ -7,6 +7,6 @@ package util;
 public interface JdbcType {
 
     String UNDEFINE = "";
-    String DEFAULT_PK = "bigint";
+    String DEFAULT_PK = "long";
     String JSON = "JSON";
 }

@@ -22,7 +22,8 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
 
     @Override
     public ILambdaQuery<T> whereEq(Function<T, Object> column, Object value) {
-        return selectQuery.whereEq(map.get(column).getName(),value);
+//        return selectQuery.whereEq(map.get(column).getName(),value);
+        return null;
     }
     @Override
     public ILambdaQuery<T> in(Function<T, Object> column, List<Object> values) {

@@ -10,7 +10,8 @@ import util.StringPool;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author Leong
@@ -24,9 +25,9 @@ public class Statement implements IStatement {
 
     boolean auto;
 
-    public Statement(String sql, List<Object> params, boolean auto) {
+    public Statement(String sql, Map<String,Object> params, boolean auto) {
         this.sql = sql;
-        this.params = params;
+        this.params = new ArrayList<>(params.values());
         this.auto = auto;
     }
 
@@ -45,7 +46,7 @@ public class Statement implements IStatement {
     public static Statement createInsertStatement(Object entity) {
         Class<?> cls = entity.getClass();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
-        List<Object> values = EntityUtil.getValues(entity);
+        Map<String,Object> values = EntityUtil.getValues(entity);
         String sql = StringPool.INSERT +
                 StringPool.SPACE +
                 tableInfo.getTableName() +
@@ -58,8 +59,12 @@ public class Statement implements IStatement {
         return new Statement(sql, values, tableInfo.isAutoIncrement());
     }
 
-    public static Statement createUpdateStatement(TableInfo tableInfo, Object entity) {
-        List<Object> values = EntityUtil.getValues(entity);
+    public static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates) {
+        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
+        T entity = DbConnection.createEntity(cls);
+        updates.accept(entity);
+        Map<String,Object> values = EntityUtil.getValues(entity);
+        System.out.println(entity);
         return null;
     }
 
@@ -67,7 +72,7 @@ public class Statement implements IStatement {
         return null;
     }
 
-    public static Statement createSelectStatement(Class<?> cls, Serializable id){
+    public static Statement createSelectStatement(Class<?> cls, Serializable id) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         Statement statement = new Statement();
         statement.sql = "SELECT * FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " = ?";

@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -90,6 +91,8 @@ public interface IDbConnection {
      * @throws SQLException SQL错误
      */
     void openTransaction(Consumer<Connection> f) throws SQLException;
+
+    <T>void updateById(Class<T> cls, Serializable id, Consumer<T> updates);
 
 
 }

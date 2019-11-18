@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author Leong
  */
-public interface ISelectQuery<T> extends ILambdaQuery<T> {
+public interface ISelectQuery<T> {
 
     /**
      * 数据库连接
@@ -82,14 +82,12 @@ public interface ISelectQuery<T> extends ILambdaQuery<T> {
      *  查询结果（多个）
      * @return 查询所得到的值
      */
-    @Override
     List<T> toList();
 
     /**
      * 查询结果（单个）
      * @return 查询结果
      */
-    @Override
     T one();
 
     /**

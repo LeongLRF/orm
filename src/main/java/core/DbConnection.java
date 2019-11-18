@@ -13,6 +13,7 @@ import util.Model;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -77,7 +78,7 @@ public class DbConnection implements IDbConnection {
     }
 
 
-    private boolean execute(IStatement statement, boolean isAuto) {
+    private Object execute(IStatement statement, boolean isAuto) {
         int genflag = java.sql.Statement.NO_GENERATED_KEYS;
         if (isAuto) {
             genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
@@ -90,11 +91,17 @@ public class DbConnection implements IDbConnection {
         try {
             preparedStatement = connection.prepareStatement(statement.getSql(), genflag);
             setParams(preparedStatement, statement.getParams());
-            return preparedStatement.execute();
+            int row = preparedStatement.executeUpdate();
+            ResultSet rs = preparedStatement.getGeneratedKeys();
+            Object key = 0;
+            if (rs.next()){
+                key = rs.getObject(row);
+            }
+            return key;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return 0;
     }
     @SuppressWarnings("all")
     @Override
@@ -179,12 +186,14 @@ public class DbConnection implements IDbConnection {
     public <T> int insert(T entity) {
         long start = System.currentTimeMillis();
         Statement statement = Statement.createInsertStatement(entity);
-        if (execute(statement, statement.auto)) {
-            return 1;
+        Object index = execute(statement, statement.auto);
+        if (statement.auto) {
+            EntityUtil.setId(entity,index);
         }
         long end = System.currentTimeMillis();
         logger.info("Cost : "+(end-start)+"ms");
-        return 0;
+        String s = index.toString();
+        return Integer.valueOf(s);
     }
 
     @Override
@@ -214,13 +223,18 @@ public class DbConnection implements IDbConnection {
         }
     }
 
-    public static <T> P3<Class<T>,String,List<Object>> makeSql(IStatement statement,Class<T> cls){
+    @Override
+    public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
+
+    }
+
+    private static <T> P3<Class<T>,String,List<Object>> makeSql(IStatement statement, Class<T> cls){
         String sql = statement.getSql();
         List<Object> params = statement.getParams();
         return P.p(cls,sql,params);
     }
 
-    public static <T> P3<Class<T>,String,List<Object>> makeSql(ISelectQuery<T> selectQuery){
+    static <T> P3<Class<T>,String,List<Object>> makeSql(ISelectQuery<T> selectQuery){
         selectQuery.makeSql(selectQuery.getWheres());
         String sql = selectQuery.getSql();
         List<Object> params = selectQuery.getParams();
@@ -251,14 +265,13 @@ public class DbConnection implements IDbConnection {
         try {
             meta = rs.getMetaData();
             List<String> fields = new ArrayList<>();
-            int count = 0;
             int bound = meta.getColumnCount();
             for (int i = 0; i < bound; i++) {
                 fields.add(meta.getColumnName(i + 1));
             }
             List<Map<String, Object>> re = new ArrayList<>();
             while (rs.next()) {
-                Map<String, Object> e = new HashMap<>();
+                Map<String, Object> e = new HashMap<>(16);
                 for (int i = 0; i < bound; i++) {
                     e.put(fields.get(i), rs.getObject(i + 1));
                 }

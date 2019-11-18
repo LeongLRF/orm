@@ -4,6 +4,7 @@ import annotation.Column;
 import annotation.Id;
 import annotation.Table;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import core.ColumnInfo;
 import core.DbConnection;
 import core.TableInfo;
@@ -12,6 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class EntityUtil {
 
@@ -37,10 +39,11 @@ public class EntityUtil {
         return info;
     }
 
-    public static <T> List<Object> getValues(T entity) {
+    public static <T> Map<String,Object> getValues(T entity) {
         Class<?> cls = entity.getClass();
         Field[] fields = cls.getDeclaredFields();
-        List<Object> values = new ArrayList<>();
+        Arrays.sort(fields);
+        Map<String,Object> values = new HashMap<>();
         for (Field field : fields) {
             if (field.isAnnotationPresent(Column.class)) {
                 Column column = field.getAnnotation(Column.class);
@@ -51,9 +54,9 @@ public class EntityUtil {
                     method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
                     if (column.jdbcType().equals(StringPool.JSON)) {
-                        values.add(JSON.toJSONString(method.invoke(entity)));
+                        values.put(field.getName(),method.invoke(entity) == null ? new JSONObject() : JSON.toJSONString(method.invoke(entity)));
                     } else {
-                        values.add(TypeConverter.convert(method.invoke(entity), type));
+                        values.put(field.getName(),TypeConverter.convert(method.invoke(entity), type));
                     }
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
@@ -61,6 +64,23 @@ public class EntityUtil {
             }
         }
         return values;
+    }
+
+    public static <T> void setId(T entity, Object id) {
+        Class<?> cls = entity.getClass();
+        Field[] fields = cls.getDeclaredFields();
+        Stream.of(fields).filter(field -> field.isAnnotationPresent(Id.class)).findFirst()
+                .map(it -> {
+                    String name = it.getName();
+                    name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
+                    try {
+                        Method method = cls.getMethod("set" + name, it.getType());
+                        method.invoke(entity, TypeConverter.convert(id,it.getType()));
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                    return it;
+                });
     }
 
     public static <T> List<T> resultSetToEntity(Class<T> cls, List<Map<String, Object>> result) {

@@ -36,10 +36,8 @@ public class Test {
         DbConnection db = new DbConnection(connection,config);
            User user = new User();
            user.setName("123");
-           User user1 = new User();
-           user.setTrueName("4657");
-           user.setUser(user1);
            db.insert(user);
+        System.out.println(user);
     }
 
     public static Class getClass(Object entity){
