@@ -9,30 +9,35 @@ import java.util.List;
 /**
  * @author Leong
  */
-public interface ISelectQuery<T> {
+public interface ISelectQuery<T> extends ILambdaQuery<T> {
 
     /**
      * 数据库连接
+     * @return 数据库连接包装类
      */
     IDbConnection getConnection();
 
     /**
-     * 表信息
+     * 获取表信息
+     * @return 表信息
      */
     TableInfo getTableInfo();
 
     /**
      * 查询参数
+     * @return 查询参数
      */
     List<Object> getParams();
 
     /**
      * 查询sql
+     * @return 拼接好的sql
      */
     String getSql();
 
     /**
      * 查询类
+     * @return 实体class
      */
     Class<T> getCls();
 
@@ -77,12 +82,14 @@ public interface ISelectQuery<T> {
      *  查询结果（多个）
      * @return 查询所得到的值
      */
+    @Override
     List<T> toList();
 
     /**
      * 查询结果（单个）
      * @return 查询结果
      */
+    @Override
     T one();
 
     /**
@@ -92,7 +99,15 @@ public interface ISelectQuery<T> {
      */
     ISelectQuery<T> orderBy(String orderBy);
 
+    /**
+     * 拼接sql
+     * @param statements sql片段
+     */
     void makeSql(List<IStatement> statements);
 
+    /**
+     * 获取sql片段
+     * @return sql片段
+     */
     List<IStatement> getWheres();
 }

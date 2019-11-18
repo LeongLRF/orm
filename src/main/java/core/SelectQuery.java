@@ -110,6 +110,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return this;
     }
 
+    @Override
     public void makeSql(List<IStatement> statements) {
         refreshSql();
         if (!statements.isEmpty()) {

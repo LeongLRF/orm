@@ -21,7 +21,7 @@ public class EntityUtil {
         TableInfo info = new TableInfo();
         info.setCls(cls);
         info.setTableName(table.name());
-        Map<String, ColumnInfo> columnInfos = new HashMap<>();
+        Map<String, ColumnInfo> columnInfos = new HashMap<>(16);
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
                 Id primaryKey = it.getAnnotation(Id.class);

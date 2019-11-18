@@ -23,7 +23,7 @@ public interface IDbConnection {
     Connection getConnection();
 
     /**
-     * 连接池
+     * 数据源
      * @return DataSource
      */
     DataSource getDataSource();
@@ -36,12 +36,36 @@ public interface IDbConnection {
      */
     <T> ISelectQuery<T> form(Class<T> cls);
 
+    /**
+     * 自定义sql
+     * @param cls 实体类型
+     * @param sql 自定义sql
+     * @param values 参数
+     * @return 查询结果
+     */
     <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values);
 
+    /**
+     * 根据主键查询
+     * @param cls 实体类型
+     * @param id 主键
+     * @return 查询结果
+     */
     <T> T getById(Class<T> cls, Serializable id);
 
+    /**
+     * 根据id批量查询
+     * @param cls 实体类型
+     * @param ids 主键列表
+     * @return 查询结果
+     */
     <T> List<T> getByIds(Class<T> cls, List<Object> ids);
 
+    /**
+     * sql执行器
+     * @param p3 查询参数 p1:实体类型 p2:sql p3:参数
+     * @return 查询结果
+     */
     <T> List<T> gen_execute(P3<Class<T>,String,List<Object>> p3);
 
     /**

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Test {
@@ -52,4 +53,5 @@ public class Test {
         System.out.println(statement.getSql());
         return 0;
     }
+
 }
