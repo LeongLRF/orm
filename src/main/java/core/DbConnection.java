@@ -129,25 +129,6 @@ public class DbConnection implements IDbConnection {
         return null;
     }
 
-    private void release(Connection connection, PreparedStatement preparedStatement){
-        if (preparedStatement!=null){
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            preparedStatement = null;
-        }
-        if (connection!=null){
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            connection = null;
-        }
-    }
-
     @Override
     public <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values) {
         return gen_execute(P.p(cls,sql,Arrays.asList(values)));
@@ -155,7 +136,7 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> T getById(Class<T> cls, Serializable id) {
-        Statement statement = Statement.createSelectStatement(cls,id);
+        IStatement statement = Statement.createSelectStatement(cls,id);
         List<T> list = gen_execute(makeSql(statement,cls));
         if (list.isEmpty()){
             return null;
@@ -166,7 +147,7 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> List<T> getByIds(Class<T> cls, List<Object> ids) {
-        SelectQuery<T> selectQuery = new SelectQuery<>(this,cls);
+        ISelectQuery<T> selectQuery = new SelectQuery<>(this,cls);
         selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(),ids);
         return gen_execute(makeSql(selectQuery));
     }
@@ -174,9 +155,9 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int insert(T entity) {
         long start = System.currentTimeMillis();
-        Statement statement = Statement.createInsertStatement(entity);
-        Object index = execute(statement, statement.auto);
-        if (statement.auto) {
+        IStatement statement = Statement.createInsertStatement(entity);
+        Object index = execute(statement, statement.isAuto());
+        if (statement.isAuto()) {
             EntityUtil.setId(entity,index);
         }
         long end = System.currentTimeMillis();
@@ -214,7 +195,8 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
-
+        Statement statement = Statement.createUpdateStatement(cls,updates,id);
+        execute(statement,false);
     }
 
     private static <T> P3<Class<T>,String,List<Object>> makeSql(IStatement statement, Class<T> cls){
@@ -281,5 +263,23 @@ public class DbConnection implements IDbConnection {
             e.printStackTrace();
         }
         return null;
+    }
+    private void release(Connection connection, PreparedStatement preparedStatement){
+        if (preparedStatement!=null){
+            try {
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            preparedStatement = null;
+        }
+        if (connection!=null){
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            connection = null;
+        }
     }
 }

@@ -34,8 +34,9 @@ public class Test {
            debug = true;
         }};
         DbConnection db = new DbConnection(connection,config);
-          User user = db.getById(User.class,5);
-        System.out.println(user);
+          db.updateById(User.class,5,user -> {
+              user.setTrueName("456");
+          });
     }
 
     public static Class getClass(Object entity){

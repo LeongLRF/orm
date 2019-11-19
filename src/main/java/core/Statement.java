@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @author Leong
@@ -59,13 +60,26 @@ public class Statement implements IStatement {
         return new Statement(sql, values, tableInfo.isAutoIncrement());
     }
 
-    public static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates) {
+    public static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates,Object id) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         T entity = DbConnection.createEntity(cls);
         updates.accept(entity);
         Map<String,Object> values = EntityUtil.getValues(entity);
-        System.out.println(entity);
-        return null;
+        List<Object> objects = new ArrayList<>();
+        String sets = values.entrySet().stream().filter(it -> it.getValue()!=null).map(it -> {
+            objects.add(it.getValue());
+            return it.getKey() + "= ?";
+        }).collect(Collectors.joining(","));
+        objects.add(id);
+        String wheres = tableInfo.getPrimaryKey().getName() + " = ?";
+        return createUpdateStatement(tableInfo.getTableName(),sets,objects,wheres);
+    }
+
+    public static <T> Statement createUpdateStatement(String tableName,String sets,List<Object> params,String wheres){
+        Statement statement = new Statement();
+        statement.sql = "update " + tableName + " set " + sets + " where " + wheres;
+        statement.params = params;
+        return statement;
     }
 
     public static Statement createDeleteStatement() {

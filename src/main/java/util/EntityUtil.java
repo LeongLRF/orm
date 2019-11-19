@@ -55,7 +55,7 @@ public class EntityUtil {
                     if (column.jdbcType().equals(StringPool.JSON)) {
                         values.put(field.getName(),method.invoke(entity) == null ? new JSONObject().toJSONString() : JSON.toJSONString(method.invoke(entity)));
                     } else {
-                        values.put(field.getName(),TypeConverter.convert(method.invoke(entity), type));
+                        values.put(column.name(),TypeConverter.convert(method.invoke(entity), type));
                     }
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();

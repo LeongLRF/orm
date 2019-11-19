@@ -3,7 +3,9 @@ package annotation;
 import util.JdbcType;
 
 import java.lang.annotation.*;
-
+/**
+ * @author Leong
+ */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
