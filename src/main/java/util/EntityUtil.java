@@ -42,7 +42,6 @@ public class EntityUtil {
     public static <T> Map<String,Object> getValues(T entity) {
         Class<?> cls = entity.getClass();
         Field[] fields = cls.getDeclaredFields();
-        Arrays.sort(fields);
         Map<String,Object> values = new HashMap<>();
         for (Field field : fields) {
             if (field.isAnnotationPresent(Column.class)) {
@@ -54,7 +53,7 @@ public class EntityUtil {
                     method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
                     if (column.jdbcType().equals(StringPool.JSON)) {
-                        values.put(field.getName(),method.invoke(entity) == null ? new JSONObject() : JSON.toJSONString(method.invoke(entity)));
+                        values.put(field.getName(),method.invoke(entity) == null ? new JSONObject().toJSONString() : JSON.toJSONString(method.invoke(entity)));
                     } else {
                         values.put(field.getName(),TypeConverter.convert(method.invoke(entity), type));
                     }

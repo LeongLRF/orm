@@ -37,7 +37,7 @@ public class TableInfo {
      */
     private boolean autoIncrement;
 
-    public List<String> columns(){
+    List<String> columns(){
         return columns.values().stream().map(ColumnInfo::getName).collect(Collectors.toList());
     }
 

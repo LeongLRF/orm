@@ -34,9 +34,7 @@ public class Test {
            debug = true;
         }};
         DbConnection db = new DbConnection(connection,config);
-           User user = new User();
-           user.setName("123");
-           db.insert(user);
+          User user = db.getById(User.class,5);
         System.out.println(user);
     }
 

@@ -106,14 +106,6 @@ public class DbConnection implements IDbConnection {
     @SuppressWarnings("all")
     @Override
     public <T> List<T> gen_execute(P3<Class<T>, String, List<Object>> p3){
-        if (cache!=null&&cache.get(p3._2())!=null){
-            logger.info("get data from cache");
-            long start = System.currentTimeMillis();
-            List<T> list = (List<T>) cache.get(p3._2());
-            long end = System.currentTimeMillis();
-            logger.info("Cost : "+(end-start)+"ms");
-            return list;
-        }
         PreparedStatement preparedStatement = null;
         try {
             long start = System.currentTimeMillis();
@@ -124,9 +116,6 @@ public class DbConnection implements IDbConnection {
             setParams(preparedStatement,p3._3());
             List<Map<String,Object>> result = fetchResultSet(preparedStatement.executeQuery());
             List<T> list = EntityUtil.resultSetToEntity(p3._1(),result);
-            if (cache!=null) {
-                cache.put(p3._2(), (List<Object>) list);
-            }
             long end = System.currentTimeMillis();
             logger.info("Execute SQL : "+ p3._2());
             logger.info("Params : "+p3._3().toString());
