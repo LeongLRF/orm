@@ -53,7 +53,7 @@ public class EntityUtil {
                     method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
                     if (column.jdbcType().equals(StringPool.JSON)) {
-                        values.put(field.getName(),method.invoke(entity) == null ? new JSONObject().toJSONString() : JSON.toJSONString(method.invoke(entity)));
+                        values.put(field.getName(),method.invoke(entity) == null ? null : JSON.toJSONString(method.invoke(entity)));
                     } else {
                         values.put(column.name(),TypeConverter.convert(method.invoke(entity), type));
                     }
