@@ -31,7 +31,6 @@ public class DbConnection implements IDbConnection {
     private boolean onTransaction = false;
     private DataSource dataSource;
     private Configuration configuration;
-    private Map<String, List<Object>> cache;
 
     public DbConnection(Connection connection) {
         this.connection = connection;
@@ -41,9 +40,6 @@ public class DbConnection implements IDbConnection {
     public DbConnection(Connection connection, Configuration configuration) {
         this.connection = connection;
         this.configuration = configuration;
-        if (configuration.enableCache) {
-            cache = new HashMap<>(50);
-        }
         logger.info("init DbConnection with default model");
     }
 
@@ -57,9 +53,6 @@ public class DbConnection implements IDbConnection {
         this.dataSource = dataSource;
         this.configuration = configuration;
         this.connection = dataSource.getConnection();
-        if (configuration.enableCache) {
-            cache = new HashMap<>(50);
-        }
         logger.info("Init DbConnection With Configuration");
     }
 
