@@ -1,8 +1,7 @@
 package core;
 
-import core.inerface.ISelectQuery;
+import com.mysql.cj.util.StringUtils;
 import core.inerface.IStatement;
-import jdk.nashorn.internal.runtime.linker.LinkerCallSite;
 import lombok.Data;
 import util.EntityUtil;
 import util.StringPool;
@@ -16,6 +15,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Leong
+ * sql 片段
  */
 @Data
 public class Statement implements IStatement {
@@ -86,7 +86,10 @@ public class Statement implements IStatement {
 
     public static <T> Statement createUpdateStatement(String tableName,String sets,List<Object> params,String wheres){
         Statement statement = new Statement();
-        statement.sql = "update " + tableName + " set " + sets + " where " + wheres;
+        if (StringUtils.isNullOrEmpty(wheres)){
+            throw new RuntimeException("can not execute update without wheres !");
+        }
+        statement.sql = "UPDATE " + tableName + " SET " + sets + " WHERE " + wheres;
         statement.params = params;
         return statement;
     }
