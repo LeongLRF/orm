@@ -2,7 +2,6 @@ package core;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Leong
  * 一级缓存
  */
-public class DefaultCache {
+public class DefaultCache implements core.inerface.DefaultCache {
 
     @Getter
     public static final ConcurrentHashMap<Class<?>,Cache> CACHE = new ConcurrentHashMap<>(16);
@@ -34,8 +33,7 @@ public class DefaultCache {
 
     public static void setValue(Class<?> cls,String sql,List<Object> objects){
         Cache cache = new Cache();
-        cache.change = false;
-        Map<String,List<Object>> map = new HashMap<>();
+        Map<String,List<Object>> map = new HashMap<>(16);
         map.put(sql,objects);
         cache.cache = map;
         getCACHE().put(cls,cache);

@@ -1,11 +1,15 @@
 package core;
 
+import lombok.Getter;
+
 import java.util.List;
 import java.util.Map;
+/**
+ * @author Leong
+ * 缓存
+ */
+public class Cache implements core.inerface.Cache {
 
-public class Cache {
-
-    public Class<?> cls;
-    public boolean change;
+    @Getter
     public Map<String, List<Object>> cache;
 }
