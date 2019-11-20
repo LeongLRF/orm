@@ -5,6 +5,7 @@ import core.TableInfo;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Leong
@@ -108,4 +109,6 @@ public interface ISelectQuery<T> {
      * @return sql片段
      */
     List<IStatement> getWheres();
+
+    int update(Consumer<T> updates);
 }

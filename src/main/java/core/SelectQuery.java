@@ -4,14 +4,18 @@ import com.mysql.cj.util.StringUtils;
 import core.inerface.IDbConnection;
 import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
+import fj.P2;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.DbLogger;
 import util.EntityUtil;
 import util.StringPool;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -119,5 +123,21 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         if (!statements.isEmpty()){
             params.addAll(statements.stream().flatMap(it -> it.getParams().stream()).collect(Collectors.toList()));
         }
+    }
+
+    @Override
+    public int update(Consumer<T> updates) {
+        T entity = DbConnection.createEntity(cls);
+        updates.accept(entity);
+        P2<String,List<Object>> p2 = Statement.getSets(entity);
+        String where = wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND ")) + orderBy;
+        params.addAll(p2._2());
+        try {
+            return Statement.createUpdateStatement(tableInfo.getTableName(),p2._1(),params,where).createPreparedStatement(connection.getConnection())
+                    .executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

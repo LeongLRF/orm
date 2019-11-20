@@ -1,12 +1,21 @@
 package core;
 
 import com.mysql.cj.util.StringUtils;
+import core.inerface.IDbConnection;
 import core.inerface.IStatement;
+import fj.P;
+import fj.P1;
+import fj.P2;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.EntityUtil;
 import util.StringPool;
 
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +28,7 @@ import java.util.stream.Collectors;
  */
 @Data
 public class Statement implements IStatement {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     String sql;
 
@@ -69,18 +79,24 @@ public class Statement implements IStatement {
     static <T> Statement createUpdateStatement(T entity, Object id){
         Class<T> cls = (Class<T>) entity.getClass();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
+        P2<String,List<Object>> setsAndObj = getSets(entity);
+        List<Object> objects = setsAndObj._2();
+        objects.add(id);
+        String wheres = tableInfo.getPrimaryKey().getName() + " = ?";
+        return createUpdateStatement(tableInfo.getTableName(),setsAndObj._1(),objects,wheres);
+    }
+
+    public static <T> P2<String,List<Object>> getSets(T entity){
         Map<String,Object> values = EntityUtil.getValues(entity);
         List<Object> objects = new ArrayList<>();
         String sets = values.entrySet().stream().filter(it -> it.getValue()!=null).map(it -> {
             objects.add(it.getValue());
             return it.getKey() + " = ?";
         }).collect(Collectors.joining(","));
-        objects.add(id);
-        String wheres = tableInfo.getPrimaryKey().getName() + " = ?";
-        return createUpdateStatement(tableInfo.getTableName(),sets,objects,wheres);
+        return P.p(sets,objects);
     }
 
-    private static <T> Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres){
+    public static Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres){
         Statement statement = new Statement();
         if (StringUtils.isNullOrEmpty(wheres)){
             throw new RuntimeException("can not execute update without wheres !");
@@ -88,6 +104,20 @@ public class Statement implements IStatement {
         statement.sql = "UPDATE " + tableName + " SET " + sets + " WHERE " + wheres;
         statement.params = params;
         return statement;
+    }
+
+    public PreparedStatement createPreparedStatement(Connection connection){
+        PreparedStatement preparedStatement =null;
+        try {
+             preparedStatement = connection.prepareStatement(sql);
+            DbConnection.setParams(preparedStatement,params);
+            logger.info("Execute SQL : "+ sql);
+            logger.info("Params : "+ params.toString() );
+            return preparedStatement;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return preparedStatement;
     }
 
     public static Statement createDeleteStatement() {

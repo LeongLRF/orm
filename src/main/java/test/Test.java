@@ -34,9 +34,9 @@ public class Test {
            debug = true;
         }};
         DbConnection db = new DbConnection(connection,config);
-          User user = db.getById(User.class,5);
-          user.setAge(20);
-          db.update(Collections.singletonList(user));
+          db.form(User.class).whereEq("id",5).update(p -> {
+              p.setAge(22);
+          });
     }
 
     public static Class getClass(Object entity){

@@ -260,7 +260,7 @@ public class DbConnection implements IDbConnection {
         return "(" + Stream.iterate("?", p -> p).limit(num).collect(Collectors.joining(",")) + ")";
     }
 
-    private void setParams(PreparedStatement statement, List<Object> values) {
+    public static void setParams(PreparedStatement statement, List<Object> values) {
         if (values == null) {
             return;
         }
