@@ -119,4 +119,24 @@ public class EntityUtil {
         }
         return list;
     }
+
+    public  static <T> Object getId(T entity){
+        Class<?> cls = entity.getClass();
+        Field[] fields = cls.getDeclaredFields();
+        Object id;
+        for (Field field : fields){
+            if (field.isAnnotationPresent(Id.class)){
+                String name = field.getName();
+                name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
+                try {
+                    Method method = cls.getMethod("get"+name);
+                    id = method.invoke(entity);
+                    return id;
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return 0;
+    }
 }

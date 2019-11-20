@@ -61,19 +61,28 @@ public class Statement implements IStatement {
     }
 
     public static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates,Object id) {
-        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         T entity = DbConnection.createEntity(cls);
         updates.accept(entity);
+        return createUpdateStatement(entity,id);
+    }
+
+    public static <T> Statement createUpdateStatement(T entity,Object id){
+        Class<T> cls = (Class<T>) entity.getClass();
+        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         Map<String,Object> values = EntityUtil.getValues(entity);
         List<Object> objects = new ArrayList<>();
         String sets = values.entrySet().stream().filter(it -> it.getValue()!=null).map(it -> {
             objects.add(it.getValue());
-            return it.getKey() + "= ?";
+            return it.getKey() + " = ?";
         }).collect(Collectors.joining(","));
         objects.add(id);
         String wheres = tableInfo.getPrimaryKey().getName() + " = ?";
         return createUpdateStatement(tableInfo.getTableName(),sets,objects,wheres);
     }
+
+
+
+
 
     public static <T> Statement createUpdateStatement(String tableName,String sets,List<Object> params,String wheres){
         Statement statement = new Statement();

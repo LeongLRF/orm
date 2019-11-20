@@ -13,10 +13,10 @@ import util.Model;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,16 +31,17 @@ public class DbConnection implements IDbConnection {
     private boolean onTransaction = false;
     private DataSource dataSource;
     private Configuration configuration;
-    private Map<String,List<Object>> cache;
+    private Map<String, List<Object>> cache;
 
     public DbConnection(Connection connection) {
         this.connection = connection;
         logger.info("init DbConnection with default model");
     }
-    public DbConnection(Connection connection,Configuration configuration) {
+
+    public DbConnection(Connection connection, Configuration configuration) {
         this.connection = connection;
         this.configuration = configuration;
-        if (configuration.enableCache){
+        if (configuration.enableCache) {
             cache = new HashMap<>(50);
         }
         logger.info("init DbConnection with default model");
@@ -52,11 +53,11 @@ public class DbConnection implements IDbConnection {
         logger.info("init DbConnection with DataSource : " + dataSource.getClass().getName());
     }
 
-    public DbConnection(DataSource dataSource,Configuration configuration) throws SQLException {
+    public DbConnection(DataSource dataSource, Configuration configuration) throws SQLException {
         this.dataSource = dataSource;
         this.configuration = configuration;
         this.connection = dataSource.getConnection();
-        if (configuration.enableCache){
+        if (configuration.enableCache) {
             cache = new HashMap<>(50);
         }
         logger.info("Init DbConnection With Configuration");
@@ -83,8 +84,8 @@ public class DbConnection implements IDbConnection {
         if (isAuto) {
             genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
         }
-        PreparedStatement preparedStatement;
-        if (debugModel(configuration)){
+        PreparedStatement preparedStatement = null;
+        if (debugModel(configuration)) {
             logger.info("Execute sql : " + statement.getSql());
             logger.info("Params : " + statement.getParams().toString());
         }
@@ -94,56 +95,73 @@ public class DbConnection implements IDbConnection {
             int row = preparedStatement.executeUpdate();
             ResultSet rs = preparedStatement.getGeneratedKeys();
             Object key = 0;
-            if (rs.next()){
+            if (rs.next()) {
                 key = rs.getObject(row);
             }
             return key;
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            release(connection, preparedStatement);
         }
         return 0;
     }
+
     @SuppressWarnings("all")
     @Override
-    public <T> List<T> gen_execute(P3<Class<T>, String, List<Object>> p3,boolean update){
+    public <T> List<T> genExecute(P3<Class<T>, String, List<Object>> p3) {
+        long start = System.currentTimeMillis();
         PreparedStatement preparedStatement = null;
         try {
-            long start = System.currentTimeMillis();
-            if (configuration.model== Model.POOL_MODEL){
+            if (configuration.model == Model.POOL_MODEL) {
                 connection = dataSource.getConnection();
             }
-             preparedStatement = connection.prepareStatement(p3._2());
-            setParams(preparedStatement,p3._3());
-            if (update) {
-                preparedStatement.executeUpdate();
-                logger.info("Excute update");
-                return null;
-            }
-            List<Map<String,Object>> result = fetchResultSet(preparedStatement.executeQuery());
-            List<T> list = EntityUtil.resultSetToEntity(p3._1(),result);
-            long end = System.currentTimeMillis();
-            logger.info("Execute SQL : "+ p3._2());
-            logger.info("Params : "+p3._3().toString());
-            logger.info("Cost : "+(end - start)+"ms");
+            preparedStatement = connection.prepareStatement(p3._2());
+            setParams(preparedStatement, p3._3());
+            List<Map<String, Object>> result = fetchResultSet(preparedStatement.executeQuery());
+            List<T> list = EntityUtil.resultSetToEntity(p3._1(), result);
+            logger.info("Execute SQL : " + p3._2());
+            logger.info("Params : " + p3._3().toString());
             return list;
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            release(connection,preparedStatement);
+            release(connection, preparedStatement);
+            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return null;
     }
 
+    public int executeUpdate(IStatement statement) {
+        PreparedStatement preparedStatement = null;
+        long start = System.currentTimeMillis();
+        try {
+            if (configuration.model == Model.POOL_MODEL) {
+                connection = dataSource.getConnection();
+            }
+            preparedStatement = connection.prepareStatement(statement.getSql());
+            setParams(preparedStatement, statement.getParams());
+            logger.info("Execute SQL : " + statement.getSql());
+            return preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            release(connection, preparedStatement);
+            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
+        }
+        return 0;
+    }
+
     @Override
     public <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values) {
-        return gen_execute(P.p(cls,sql,Arrays.asList(values)),false);
+        return genExecute(P.p(cls, sql, Arrays.asList(values)));
     }
 
     @Override
     public <T> T getById(Class<T> cls, Serializable id) {
-        IStatement statement = Statement.createSelectStatement(cls,id);
-        List<T> list = gen_execute(makeSql(statement,cls),false);
-        if (list.isEmpty()){
+        IStatement statement = Statement.createSelectStatement(cls, id);
+        List<T> list = genExecute(makeSql(statement, cls));
+        if (list.isEmpty()) {
             return null;
         } else {
             return list.get(0);
@@ -152,9 +170,9 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> List<T> getByIds(Class<T> cls, List<Object> ids) {
-        ISelectQuery<T> selectQuery = new SelectQuery<>(this,cls);
-        selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(),ids);
-        return gen_execute(makeSql(selectQuery),false);
+        ISelectQuery<T> selectQuery = new SelectQuery<>(this, cls);
+        selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(), ids);
+        return genExecute(makeSql(selectQuery));
     }
 
     @Override
@@ -163,10 +181,10 @@ public class DbConnection implements IDbConnection {
         IStatement statement = Statement.createInsertStatement(entity);
         Object index = execute(statement, statement.isAuto());
         if (statement.isAuto()) {
-            EntityUtil.setId(entity,index);
+            EntityUtil.setId(entity, index);
         }
         long end = System.currentTimeMillis();
-        logger.info("Cost : "+(end-start)+"ms");
+        logger.info("Cost : " + (end - start) + "ms");
         String s = index.toString();
         return Integer.valueOf(s);
     }
@@ -174,20 +192,19 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int insert(List<T> entities) {
         logger.info("open transaction");
-        openTransaction((connection) -> entities.forEach(this::insert));
+        openTransaction(() -> {
+            entities.forEach(this::insert);
+            return null;
+        });
         return 0;
     }
 
     @Override
-    public void openTransaction(Consumer<Connection> f) {
+    public void openTransaction(Supplier<?> f) {
         try {
-            long start = System.currentTimeMillis();
             connection.setAutoCommit(onTransaction);
-            f.accept(connection);
-            logger.info("commit");
+            f.get();
             connection.commit();
-            long end = System.currentTimeMillis();
-            logger.info("Cost : " + (end -start)+"ms");
         } catch (SQLException e) {
             e.printStackTrace();
             try {
@@ -200,22 +217,41 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
-        IStatement statement = Statement.createUpdateStatement(cls,updates,id);
-        gen_execute(makeSql(statement,cls),true);
+        IStatement statement = Statement.createUpdateStatement(cls, updates, id);
+        executeUpdate(statement);
     }
 
-    private static <T> P3<Class<T>,String,List<Object>> makeSql(IStatement statement, Class<T> cls){
+    @Override
+    public <T> int update(T entity) {
+        Object id = EntityUtil.getId(entity);
+        IStatement statement = Statement.createUpdateStatement(entity, id);
+        return executeUpdate(statement);
+    }
+
+    @Override
+    public <T> int update(List<T> entities) {
+        if (entities.isEmpty()) {
+            return 0;
+        }
+        openTransaction(() -> {
+            entities.forEach(this::update);
+            return null;
+        });
+        return 1;
+    }
+
+    private static <T> P3<Class<T>, String, List<Object>> makeSql(IStatement statement, Class<T> cls) {
         String sql = statement.getSql();
         List<Object> params = statement.getParams();
-        return P.p(cls,sql,params);
+        return P.p(cls, sql, params);
     }
 
-    static <T> P3<Class<T>,String,List<Object>> makeSql(ISelectQuery<T> selectQuery){
+    static <T> P3<Class<T>, String, List<Object>> makeSql(ISelectQuery<T> selectQuery) {
         selectQuery.makeSql(selectQuery.getWheres());
         String sql = selectQuery.getSql();
         List<Object> params = selectQuery.getParams();
         Class<T> cls = selectQuery.getCls();
-        return P.p(cls,sql,params);
+        return P.p(cls, sql, params);
     }
 
 
@@ -258,9 +294,11 @@ public class DbConnection implements IDbConnection {
             throw new RuntimeException(e);
         }
     }
-    private boolean debugModel(Configuration configuration){
-        return configuration!=null && configuration.isDebug();
+
+    private boolean debugModel(Configuration configuration) {
+        return configuration != null && configuration.isDebug();
     }
+
     public static <T> T createEntity(Class<T> cls) {
         try {
             return cls.newInstance();
@@ -269,8 +307,9 @@ public class DbConnection implements IDbConnection {
         }
         return null;
     }
-    private void release(Connection connection, PreparedStatement preparedStatement){
-        if (preparedStatement!=null){
+
+    private void release(Connection connection, PreparedStatement preparedStatement) {
+        if (preparedStatement != null) {
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
@@ -278,7 +317,7 @@ public class DbConnection implements IDbConnection {
             }
             preparedStatement = null;
         }
-        if (connection!=null){
+        if (connection != null) {
             try {
                 connection.close();
             } catch (SQLException e) {

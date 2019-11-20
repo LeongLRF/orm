@@ -34,10 +34,9 @@ public class Test {
            debug = true;
         }};
         DbConnection db = new DbConnection(connection,config);
-          db.updateById(User.class,5,user -> {
-              user.setTrueName("456");
-              user.setName("789");
-          });
+          User user = db.getById(User.class,5);
+          user.setAge(20);
+          db.update(Collections.singletonList(user));
     }
 
     public static Class getClass(Object entity){

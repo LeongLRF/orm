@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author Leong
@@ -67,7 +68,7 @@ public interface IDbConnection {
      * @param p3 查询参数 p1:实体类型 p2:sql p3:参数
      * @return 查询结果
      */
-    <T> List<T> gen_execute(P3<Class<T>,String,List<Object>> p3,boolean update);
+    <T> List<T> genExecute(P3<Class<T>,String,List<Object>> p3);
 
     /**
      * 插入单条数据
@@ -90,9 +91,27 @@ public interface IDbConnection {
      * @param f 事务内容
      * @throws SQLException SQL错误
      */
-    void openTransaction(Consumer<Connection> f) throws SQLException;
+    void openTransaction(Supplier<?> f) throws SQLException;
 
+    /**
+     * 根据主键更新（非全表更新）
+     * @param cls 实体类型
+     * @param id 主键
+     * @param updates 更新内容
+     */
     <T>void updateById(Class<T> cls, Serializable id, Consumer<T> updates);
 
+    /**
+     * 单个更新,全表更新
+     * @param entity 实体
+     * @return 是否成功
+     */
+    <T>int update(T entity);
 
+    /**
+     * 批量更新 全表更新
+     * @param entities 实体列表
+     * @return 是否成功
+     */
+    <T> int update(List<T> entities);
 }
