@@ -1,6 +1,7 @@
 package core;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
@@ -11,5 +12,6 @@ import java.util.Map;
 public class Cache implements core.inerface.Cache {
 
     @Getter
+    @Setter
     public Map<String, List<Object>> cache;
 }
