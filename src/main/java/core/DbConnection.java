@@ -111,6 +111,12 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> List<T> genExecute(P3<Class<T>, String, List<Object>> p3) {
         long start = System.currentTimeMillis();
+        if (DefaultCache.getValue(p3._1(), p3._2()) != null) {
+            List<T> list = (List<T>) DefaultCache.getValue(p3._1(), p3._2());
+            logger.info("get data from cache");
+            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
+            return list;
+        }
         PreparedStatement preparedStatement = null;
         try {
             if (configuration.model == Model.POOL_MODEL) {
@@ -118,8 +124,8 @@ public class DbConnection implements IDbConnection {
             }
             preparedStatement = connection.prepareStatement(p3._2());
             setParams(preparedStatement, p3._3());
-            List<Map<String, Object>> result = fetchResultSet(preparedStatement.executeQuery());
-            List<T> list = EntityUtil.resultSetToEntity(p3._1(), result);
+            List<T> list = EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(preparedStatement.executeQuery()));
+            DefaultCache.setValue(p3._1(), p3._2(), (List<Object>) list);
             logger.info("Execute SQL : " + p3._2());
             logger.info("Params : " + p3._3().toString());
             return list;
@@ -217,6 +223,7 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
+        DefaultCache.update(cls);
         IStatement statement = Statement.createUpdateStatement(cls, updates, id);
         executeUpdate(statement);
     }
@@ -224,6 +231,7 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int update(T entity) {
         Object id = EntityUtil.getId(entity);
+        DefaultCache.update(entity.getClass());
         IStatement statement = Statement.createUpdateStatement(entity, id);
         return executeUpdate(statement);
     }
