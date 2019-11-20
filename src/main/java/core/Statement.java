@@ -60,13 +60,13 @@ public class Statement implements IStatement {
         return new Statement(sql, values, tableInfo.isAutoIncrement());
     }
 
-    public static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates,Object id) {
+    static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates, Object id) {
         T entity = DbConnection.createEntity(cls);
         updates.accept(entity);
         return createUpdateStatement(entity,id);
     }
 
-    public static <T> Statement createUpdateStatement(T entity,Object id){
+    static <T> Statement createUpdateStatement(T entity, Object id){
         Class<T> cls = (Class<T>) entity.getClass();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         Map<String,Object> values = EntityUtil.getValues(entity);
@@ -80,11 +80,7 @@ public class Statement implements IStatement {
         return createUpdateStatement(tableInfo.getTableName(),sets,objects,wheres);
     }
 
-
-
-
-
-    public static <T> Statement createUpdateStatement(String tableName,String sets,List<Object> params,String wheres){
+    private static <T> Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres){
         Statement statement = new Statement();
         if (StringUtils.isNullOrEmpty(wheres)){
             throw new RuntimeException("can not execute update without wheres !");
