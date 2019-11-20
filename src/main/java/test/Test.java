@@ -36,6 +36,7 @@ public class Test {
         DbConnection db = new DbConnection(connection,config);
           db.updateById(User.class,5,user -> {
               user.setTrueName("456");
+              user.setName("789");
           });
     }
 

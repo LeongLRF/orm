@@ -67,7 +67,7 @@ public interface IDbConnection {
      * @param p3 查询参数 p1:实体类型 p2:sql p3:参数
      * @return 查询结果
      */
-    <T> List<T> gen_execute(P3<Class<T>,String,List<Object>> p3);
+    <T> List<T> gen_execute(P3<Class<T>,String,List<Object>> p3,boolean update);
 
     /**
      * 插入单条数据

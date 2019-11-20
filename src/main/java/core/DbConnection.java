@@ -105,7 +105,7 @@ public class DbConnection implements IDbConnection {
     }
     @SuppressWarnings("all")
     @Override
-    public <T> List<T> gen_execute(P3<Class<T>, String, List<Object>> p3){
+    public <T> List<T> gen_execute(P3<Class<T>, String, List<Object>> p3,boolean update){
         PreparedStatement preparedStatement = null;
         try {
             long start = System.currentTimeMillis();
@@ -114,6 +114,11 @@ public class DbConnection implements IDbConnection {
             }
              preparedStatement = connection.prepareStatement(p3._2());
             setParams(preparedStatement,p3._3());
+            if (update) {
+                preparedStatement.executeUpdate();
+                logger.info("Excute update");
+                return null;
+            }
             List<Map<String,Object>> result = fetchResultSet(preparedStatement.executeQuery());
             List<T> list = EntityUtil.resultSetToEntity(p3._1(),result);
             long end = System.currentTimeMillis();
@@ -131,13 +136,13 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> List<T> sqlQuery(Class<T> cls, String sql, Object... values) {
-        return gen_execute(P.p(cls,sql,Arrays.asList(values)));
+        return gen_execute(P.p(cls,sql,Arrays.asList(values)),false);
     }
 
     @Override
     public <T> T getById(Class<T> cls, Serializable id) {
         IStatement statement = Statement.createSelectStatement(cls,id);
-        List<T> list = gen_execute(makeSql(statement,cls));
+        List<T> list = gen_execute(makeSql(statement,cls),false);
         if (list.isEmpty()){
             return null;
         } else {
@@ -149,7 +154,7 @@ public class DbConnection implements IDbConnection {
     public <T> List<T> getByIds(Class<T> cls, List<Object> ids) {
         ISelectQuery<T> selectQuery = new SelectQuery<>(this,cls);
         selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(),ids);
-        return gen_execute(makeSql(selectQuery));
+        return gen_execute(makeSql(selectQuery),false);
     }
 
     @Override
@@ -195,8 +200,8 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
-        Statement statement = Statement.createUpdateStatement(cls,updates,id);
-        execute(statement,false);
+        IStatement statement = Statement.createUpdateStatement(cls,updates,id);
+        gen_execute(makeSql(statement,cls),true);
     }
 
     private static <T> P3<Class<T>,String,List<Object>> makeSql(IStatement statement, Class<T> cls){

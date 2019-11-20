@@ -90,7 +90,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public List<T> toList() {
-        return connection.gen_execute(DbConnection.makeSql(this));
+        return connection.gen_execute(DbConnection.makeSql(this),false);
     }
 
     @Override

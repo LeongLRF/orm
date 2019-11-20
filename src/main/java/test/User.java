@@ -11,7 +11,7 @@ import util.JdbcType;
 public class User {
 
     @Id("id")
-    long id;
+    Long id;
 
 
     @Column(name = "name")
@@ -21,7 +21,7 @@ public class User {
     String trueName;
 
     @Column(name = "age")
-    int age;
+    Integer age;
 
     @Column(name = "user", jdbcType = JdbcType.JSON)
     User user;
