@@ -132,6 +132,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         P2<String,List<Object>> p2 = Statement.getSets(entity);
         String where = wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND ")) + orderBy;
         params.addAll(p2._2());
+        params.addAll(wheres.stream().map(IStatement::getParams).collect(Collectors.toList()));
         try {
             return Statement.createUpdateStatement(tableInfo.getTableName(),p2._1(),params,where).createPreparedStatement(connection.getConnection())
                     .executeUpdate();
