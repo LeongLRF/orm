@@ -26,29 +26,15 @@ public class Test {
             String url = "jdbc:mysql://59.110.171.118:3306/test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
             String username = "root";
             String password = "Liang45623+1628";
-            connection = DriverManager.getConnection(url,username,password);
+            connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
-        Configuration config = new Configuration(){{
-           debug = true;
+        Configuration config = new Configuration() {{
+            debug = true;
         }};
-        DbConnection db = new DbConnection(connection,config);
-          db.form(User.class).whereEq("id",5).update(p -> {
-              p.setAge(22);
-          });
+        DbConnection db = new DbConnection(connection, config);
+        User user = db.form(User.class).whereEq(true,"name","梁荣锋").one();
+        System.out.println(user);
     }
-
-    public static Class getClass(Object entity){
-        return entity.getClass();
-    }
-
-    public static <T> int insert(T entity) {
-        Class<?> cls = entity.getClass();
-        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
-        Statement statement = Statement.createInsertStatement(entity);
-        System.out.println(statement.getSql());
-        return 0;
-    }
-
 }

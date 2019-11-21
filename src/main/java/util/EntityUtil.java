@@ -4,7 +4,6 @@ import annotation.Column;
 import annotation.Id;
 import annotation.Table;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import core.ColumnInfo;
 import core.DbConnection;
 import core.TableInfo;
