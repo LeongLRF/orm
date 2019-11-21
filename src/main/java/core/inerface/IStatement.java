@@ -33,6 +33,9 @@ public interface IStatement {
 
     /**
      * 创建 preparedStatement
+     * @param connection 数据库连接
+     * @param flag 是否返回自增数据
+     * @return preparedStatement
      */
     PreparedStatement createPreparedStatement(Connection connection,Integer flag);
 

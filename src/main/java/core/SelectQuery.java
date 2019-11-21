@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Data
 public class SelectQuery<T> implements ISelectQuery<T> {
 
-    private final Logger logger = LoggerFactory.getLogger(SelectQuery.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private IDbConnection connection;
     private String sql;
@@ -103,6 +103,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return connection.genExecute(DbConnection.makeSql(this));
     }
 
+
     @Override
     public T one() {
         List<T> list = toList();
@@ -146,9 +147,24 @@ public class SelectQuery<T> implements ISelectQuery<T> {
                     .executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
+        }finally {
+            logger.info("Cost : "+(System.currentTimeMillis()-start)+"ms");
         }
         return 0;
+    }
+
+    @Override
+    public ISelectQuery<T> genLike(String column, Object value,int position) {
+        IStatement statement = new Statement();
+        String like = null;
+        switch (position){
+            case 0 : like = "'%"+value+"%'";break;
+            case 1 : like = "'%"+value+"'";break;
+            case 2 : like = "'"+value+"%'";break;
+            default:
+        }
+        statement.setSql(column +" like "+ like);
+        wheres.add(statement);
+        return this;
     }
 }

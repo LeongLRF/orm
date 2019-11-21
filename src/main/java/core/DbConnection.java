@@ -32,21 +32,11 @@ public class DbConnection implements IDbConnection {
     private DataSource dataSource;
     private Configuration configuration;
 
-    public DbConnection(Connection connection) {
-        this.connection = connection;
-        logger.info("init DbConnection with default model");
-    }
 
     public DbConnection(Connection connection, Configuration configuration) {
         this.connection = connection;
         this.configuration = configuration;
-        logger.info("init DbConnection with default model");
-    }
-
-    public DbConnection(DataSource dataSource) throws SQLException {
-        this.dataSource = dataSource;
-        this.connection = dataSource.getConnection();
-        logger.info("init DbConnection with DataSource : " + dataSource.getClass().getName());
+        logger.info("Init DbConnection with default model");
     }
 
     public DbConnection(DataSource dataSource, Configuration configuration) throws SQLException {
@@ -83,8 +73,7 @@ public class DbConnection implements IDbConnection {
             logger.info("Params : " + statement.getParams().toString());
         }
         try {
-            preparedStatement = statement.createPreparedStatement(connection,genflag);
-            setParams(preparedStatement, statement.getParams());
+            preparedStatement = statement.createPreparedStatement(connection, genflag);
             int row = preparedStatement.executeUpdate();
             ResultSet rs = preparedStatement.getGeneratedKeys();
             Object key = 0;
@@ -94,8 +83,6 @@ public class DbConnection implements IDbConnection {
             return key;
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            release(connection, preparedStatement);
         }
         return 0;
     }
@@ -125,27 +112,23 @@ public class DbConnection implements IDbConnection {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            release(connection, preparedStatement);
             logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return null;
     }
 
     public int executeUpdate(IStatement statement) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement preparedStatement;
         long start = System.currentTimeMillis();
         try {
             if (configuration.model == Model.POOL_MODEL) {
                 connection = dataSource.getConnection();
             }
-            preparedStatement = connection.prepareStatement(statement.getSql());
-            setParams(preparedStatement, statement.getParams());
-            logger.info("Execute SQL : " + statement.getSql());
+            preparedStatement = statement.createPreparedStatement(connection, null);
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            release(connection, preparedStatement);
             logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return 0;
@@ -201,13 +184,16 @@ public class DbConnection implements IDbConnection {
     @Override
     public void openTransaction(Supplier<?> f) {
         try {
+            logger.info("open transaction");
             connection.setAutoCommit(onTransaction);
             f.get();
             connection.commit();
+            logger.info("commit");
         } catch (SQLException e) {
             e.printStackTrace();
             try {
                 connection.rollback();
+                logger.info("Transaction rollback");
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -239,6 +225,12 @@ public class DbConnection implements IDbConnection {
             return null;
         });
         return 1;
+    }
+
+    @Override
+    public <T> int deleteById(Class<T> cls, Serializable id) {
+        IStatement statement = Statement.createDeleteStatement(cls, id);
+        return executeUpdate(statement);
     }
 
     private static <T> P3<Class<T>, String, List<Object>> makeSql(IStatement statement, Class<T> cls) {

@@ -114,4 +114,11 @@ public interface IDbConnection {
      * @return 是否成功
      */
     <T> int update(List<T> entities);
+
+    /**
+     * 根据主键删除
+     * @param cls 删除实体类型
+     * @param id 主键
+     */
+    <T> int deleteById(Class<T> cls ,Serializable id);
 }

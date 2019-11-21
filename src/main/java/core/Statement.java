@@ -16,9 +16,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -125,8 +123,10 @@ public class Statement implements IStatement {
         return null;
     }
 
-    public static Statement createDeleteStatement() {
-        return null;
+    public static Statement createDeleteStatement(Class<?> cls,Serializable id) {
+        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
+        String sql = "DELETE FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " = ?";
+        return new Statement(sql, Collections.singletonList(id));
     }
 
     public static Statement createSelectStatement(Class<?> cls, Serializable id) {

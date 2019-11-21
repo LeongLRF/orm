@@ -43,6 +43,7 @@ public interface ISelectQuery<T> {
     String getSql();
 
     void setSql(String sql);
+
     /**
      * 查询类
      *
@@ -134,6 +135,15 @@ public interface ISelectQuery<T> {
     List<T> toList();
 
     /**
+     * 结果计数功能
+     *
+     * @return 返回结果数量
+     */
+    default int count() {
+        return toList().size();
+    }
+
+    /**
      * 查询结果（单个）
      *
      * @return 查询结果
@@ -169,4 +179,59 @@ public interface ISelectQuery<T> {
      * @return 更新数量
      */
     int update(Consumer<T> updates);
+
+    /**
+     * 模糊查询 例如：select * from table where xxx like '%xxx%'
+     *
+     * @param column 查询字段
+     * @param value  查询参数
+     * @param position %的位置 0 两边都有 1 左边有 2 右边有
+     * @return this
+     */
+    ISelectQuery<T> genLike(String column, Object value,int position);
+
+    /**
+     * 左边模糊查询 例如：select * from table where xxx like '%xxx'
+     *
+     * @param column 查询字段
+     * @param value  查询参数
+     * @return this
+     */
+    default  ISelectQuery<T> likeLeft(String column, Object value){
+        return genLike(column,value,1);
+    }
+
+    /**
+     * 全模糊查询 例如：select * from table where xxx like '%xxx%'
+     *
+     * @param column 查询字段
+     * @param value  查询参数
+     * @return this
+     */
+    default ISelectQuery<T> like(String column,Object value){
+        return genLike(column,value,0);
+    }
+    /**
+     * 右边模糊查询 例如：select * from table where xxx like 'xxx%'
+     *
+     * @param column 查询字段
+     * @param value  查询参数
+     * @return this
+     */
+    default ISelectQuery<T> likeRight(String column,Object value){
+        return genLike(column,value,2);
+    }
+    /**
+     * 条件模糊查询 例如：select * from table where xxx like '%xxx'
+     *
+     * @param column 查询字段
+     * @param value  查询参数
+     * @return this
+     */
+    default ISelectQuery<T> like(boolean condition, String column, Object value) {
+        if (condition) {
+            return like(column, value);
+        }
+        return this;
+    }
 }

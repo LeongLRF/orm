@@ -34,7 +34,11 @@ public class Test {
             debug = true;
         }};
         DbConnection db = new DbConnection(connection, config);
-        List<User> user = db.form(User.class).between("id",2,4).toList();
-        System.out.println(user);
+        db.openTransaction(() ->{
+            User user = new User();
+            user.setName("test");
+            db.insert(user);
+            return null;
+        });
     }
 }
