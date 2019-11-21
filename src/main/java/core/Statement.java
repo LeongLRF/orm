@@ -106,10 +106,15 @@ public class Statement implements IStatement {
         return statement;
     }
 
-    public PreparedStatement createPreparedStatement(Connection connection){
-        PreparedStatement preparedStatement =null;
+    @Override
+    public PreparedStatement createPreparedStatement(Connection connection,Integer flag){
+        PreparedStatement preparedStatement;
         try {
-             preparedStatement = connection.prepareStatement(sql);
+            if (flag!=null) {
+                preparedStatement = connection.prepareStatement(sql,flag);
+            }else {
+                preparedStatement = connection.prepareStatement(sql);
+            }
             DbConnection.setParams(preparedStatement,params);
             logger.info("Execute SQL : "+ sql);
             logger.info("Params : "+ params.toString() );
@@ -117,7 +122,7 @@ public class Statement implements IStatement {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return preparedStatement;
+        return null;
     }
 
     public static Statement createDeleteStatement() {

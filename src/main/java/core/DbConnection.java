@@ -83,7 +83,7 @@ public class DbConnection implements IDbConnection {
             logger.info("Params : " + statement.getParams().toString());
         }
         try {
-            preparedStatement = connection.prepareStatement(statement.getSql(), genflag);
+            preparedStatement = statement.createPreparedStatement(connection,genflag);
             setParams(preparedStatement, statement.getParams());
             int row = preparedStatement.executeUpdate();
             ResultSet rs = preparedStatement.getGeneratedKeys();

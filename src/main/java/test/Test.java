@@ -34,7 +34,7 @@ public class Test {
             debug = true;
         }};
         DbConnection db = new DbConnection(connection, config);
-        User user = db.form(User.class).whereEq(true,"name","梁荣锋").one();
+        List<User> user = db.form(User.class).between("id",2,4).toList();
         System.out.println(user);
     }
 }

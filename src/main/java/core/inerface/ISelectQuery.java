@@ -33,6 +33,8 @@ public interface ISelectQuery<T> {
      */
     List<Object> getParams();
 
+    void setParams(List<Object> params);
+
     /**
      * 查询sql
      *
@@ -40,6 +42,7 @@ public interface ISelectQuery<T> {
      */
     String getSql();
 
+    void setSql(String sql);
     /**
      * 查询类
      *

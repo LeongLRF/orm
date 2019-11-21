@@ -8,7 +8,6 @@ import fj.P2;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.DbLogger;
 import util.EntityUtil;
 import util.StringPool;
 
@@ -51,9 +50,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public ISelectQuery<T> where(String sql, Object... value) {
-        Statement statement = new Statement();
-        statement.sql = sql;
-        statement.params.addAll(Arrays.asList(value));
+        IStatement statement = new Statement();
+        statement.setSql(sql);
+        statement.getParams().addAll(Arrays.asList(value));
         this.wheres.add(statement);
         return this;
     }
@@ -61,9 +60,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     @Override
     public ISelectQuery<T> in(String column, List<Object> values) {
         if (!values.isEmpty()) {
-            Statement statement = new Statement();
-            statement.sql = column + " in " + DbConnection.createParameterPlaceHolder(values.size());
-            statement.params.addAll(values);
+            IStatement statement = new Statement();
+            statement.setSql(column + " in " + DbConnection.createParameterPlaceHolder(values.size()));
+            statement.getParams().addAll(values);
             this.wheres.add(statement);
         }
         return this;
@@ -71,9 +70,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public ISelectQuery<T> whereEq(String column, Object value) {
-        Statement statement = new Statement();
-        statement.sql = column + StringPool.SPACE + StringPool.EQUALS + StringPool.SPACE + StringPool.QUESTION_MARK;
-        statement.params.add(value);
+        IStatement statement = new Statement();
+        statement.setSql(column + StringPool.SPACE + StringPool.EQUALS + StringPool.SPACE + StringPool.QUESTION_MARK);
+        statement.getParams().add(value);
         wheres.add(statement);
         return this;
     }
@@ -91,7 +90,12 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public ISelectQuery<T> between(String column, Object value, Object value2) {
-        return null;
+        IStatement statement = new Statement();
+        statement.setSql( column + " BETWEEN ? AND ?");
+        statement.getParams().add(value);
+        statement.getParams().add(value2);
+        wheres.add(statement);
+        return this;
     }
 
     @Override
@@ -137,11 +141,13 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         params.addAll(p2._2());
         params.addAll(wheres.stream().flatMap(it -> it.getParams().stream()).collect(Collectors.toList()));
         try {
-            return Statement.createUpdateStatement(tableInfo.getTableName(), p2._1(), params, where).createPreparedStatement(connection.getConnection())
+            return Statement.createUpdateStatement(tableInfo.getTableName(), p2._1(), params, where)
+                    .createPreparedStatement(connection.getConnection(), null)
                     .executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {logger.info("Cost : "+(System.currentTimeMillis()-start)+"ms");
+        } finally {
+            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return 0;
     }
