@@ -84,7 +84,7 @@ public class Statement implements IStatement {
         return createUpdateStatement(tableInfo.getTableName(),setsAndObj._1(),objects,wheres);
     }
 
-    public static <T> P2<String,List<Object>> getSets(T entity){
+    static <T> P2<String,List<Object>> getSets(T entity){
         Map<String,Object> values = EntityUtil.getValues(entity);
         List<Object> objects = new ArrayList<>();
         String sets = values.entrySet().stream().filter(it -> it.getValue()!=null).map(it -> {
@@ -94,7 +94,7 @@ public class Statement implements IStatement {
         return P.p(sets,objects);
     }
 
-    public static Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres){
+    static Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres){
         Statement statement = new Statement();
         if (StringUtils.isNullOrEmpty(wheres)){
             throw new RuntimeException("can not execute update without wheres !");
@@ -128,6 +128,11 @@ public class Statement implements IStatement {
         String sql = "DELETE FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " = ?";
         return new Statement(sql, Collections.singletonList(id));
     }
+    public static Statement createDeleteStatement(Class<?> cls,List<Object> id) {
+        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
+        String sql = "DELETE FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " in " + DbConnection.createParameterPlaceHolder(id.size());
+        return new Statement(sql, id);
+    }
 
     public static Statement createSelectStatement(Class<?> cls, Serializable id) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
@@ -137,8 +142,4 @@ public class Statement implements IStatement {
         return statement;
     }
 
-
-    public Statement where(String column, String op, Object values) {
-        return null;
-    }
 }

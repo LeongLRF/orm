@@ -34,11 +34,9 @@ public class Test {
             debug = true;
         }};
         DbConnection db = new DbConnection(connection, config);
-        db.openTransaction(() ->{
-            User user = new User();
-            user.setName("test");
-            db.insert(user);
-            return null;
-        });
+        User user = new User();
+        user.setName("123456");
+        user.setTrueName("Leong");
+        db.insert(user);
     }
 }

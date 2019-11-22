@@ -121,4 +121,18 @@ public interface IDbConnection {
      * @param id 主键
      */
     <T> int deleteById(Class<T> cls ,Serializable id);
+
+    /**
+     * 单个删除
+     * @param entity 删除对象
+     * @return 删除条数
+     */
+    <T> int delete(T entity);
+
+    /**
+     * 批量删除
+     * @param ids 主键
+     * @return 删除记录数量
+     */
+    <T>int deleteByIds(Class<T> cls,List<Object> ids);
 }

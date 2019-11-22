@@ -183,12 +183,13 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public void openTransaction(Supplier<?> f) {
+        long start = System.currentTimeMillis();
         try {
             logger.info("open transaction");
             connection.setAutoCommit(onTransaction);
             f.get();
             connection.commit();
-            logger.info("commit");
+            logger.info("commit cost: " +(System.currentTimeMillis()-start)+"ms");
         } catch (SQLException e) {
             e.printStackTrace();
             try {
@@ -230,6 +231,18 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int deleteById(Class<T> cls, Serializable id) {
         IStatement statement = Statement.createDeleteStatement(cls, id);
+        return executeUpdate(statement);
+    }
+
+    @Override
+    public <T> int delete(T entity) {
+        Serializable id = (Serializable) EntityUtil.getId(entity);
+        return deleteById(entity.getClass(),id);
+    }
+
+    @Override
+    public <T> int deleteByIds(Class<T> cls,List<Object> ids) {
+        IStatement statement = Statement.createDeleteStatement(cls,ids);
         return executeUpdate(statement);
     }
 
