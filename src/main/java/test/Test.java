@@ -34,9 +34,9 @@ public class Test {
             debug = true;
         }};
         DbConnection db = new DbConnection(connection, config);
-        User user = new User();
-        user.setName("123456");
-        user.setTrueName("Leong");
-        db.insert(user);
+        db.openTransaction(()->{
+            db.form(User.class).toList();
+            return null;
+        });
     }
 }

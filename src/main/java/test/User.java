@@ -7,23 +7,23 @@ import lombok.Data;
 import util.JdbcType;
 
 @Data
-@Table(name = "user")
+@Table("user")
 public class User {
 
     @Id("id")
     Long id;
 
 
-    @Column(name = "name")
+    @Column("name")
     String name;
 
-    @Column(name = "trueName")
+    @Column("trueName")
     String trueName;
 
-    @Column(name = "age")
+    @Column("age")
     Integer age;
 
-    @Column(name = "user", jdbcType = JdbcType.JSON)
+    @Column(value = "user", jdbcType = JdbcType.JSON)
     User user;
 
     String faker;

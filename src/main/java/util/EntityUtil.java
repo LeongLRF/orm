@@ -21,7 +21,7 @@ public class EntityUtil {
         Table table = cls.getAnnotation(Table.class);
         TableInfo info = new TableInfo();
         info.setCls(cls);
-        info.setTableName(table.name());
+        info.setTableName(table.value());
         Map<String, ColumnInfo> columnInfos = new HashMap<>(16);
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
@@ -31,17 +31,17 @@ public class EntityUtil {
             }
             if (it.isAnnotationPresent(Column.class)) {
                 Column column = it.getAnnotation(Column.class);
-                columnInfos.put(it.getName(), ColumnInfo.createColumn(column.name(), column.jdbcType(), ColumnInfo.NORMAL_KEY));
+                columnInfos.put(it.getName(), ColumnInfo.createColumn(column.value(), column.jdbcType(), ColumnInfo.NORMAL_KEY));
             }
         });
         info.setColumns(columnInfos);
         return info;
     }
 
-    public static <T> Map<String,Object> getValues(T entity) {
+    public static <T> Map<String, Object> getValues(T entity) {
         Class<?> cls = entity.getClass();
         Field[] fields = cls.getDeclaredFields();
-        Map<String,Object> values = new HashMap<>();
+        Map<String, Object> values = new HashMap<>();
         for (Field field : fields) {
             if (field.isAnnotationPresent(Column.class)) {
                 Column column = field.getAnnotation(Column.class);
@@ -52,9 +52,9 @@ public class EntityUtil {
                     method = cls.getMethod("get" + name);
                     Class<?> type = field.getType();
                     if (column.jdbcType().equals(StringPool.JSON)) {
-                        values.put(field.getName(),method.invoke(entity) == null ? null : JSON.toJSONString(method.invoke(entity)));
+                        values.put(field.getName(), method.invoke(entity) == null ? null : JSON.toJSONString(method.invoke(entity)));
                     } else {
-                        values.put(column.name(),TypeConverter.convert(method.invoke(entity), type));
+                        values.put(column.value(), TypeConverter.convert(method.invoke(entity), type));
                     }
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
@@ -73,7 +73,7 @@ public class EntityUtil {
                     name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                     try {
                         Method method = cls.getMethod("set" + name, it.getType());
-                        method.invoke(entity, TypeConverter.convert(id,it.getType()));
+                        method.invoke(entity, TypeConverter.convert(id, it.getType()));
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
@@ -96,7 +96,7 @@ public class EntityUtil {
                         type = id.type();
                     } else {
                         Column column = field.getAnnotation(Column.class);
-                        dbName = column.name();
+                        dbName = column.value();
                         type = column.jdbcType();
                     }
                     String name = field.getName();
@@ -104,7 +104,13 @@ public class EntityUtil {
                     try {
                         Method method = cls.getMethod("set" + name, field.getType());
                         if (type.equals(StringPool.JSON)) {
-                            method.invoke(t, JSON.parseObject(map.get(dbName).toString(), field.getType()));
+                            if (map.get(dbName) != null) {
+                                if (field.getType().getSuperclass().getName().contains("Collection")) {
+                                    method.invoke(t, JSON.parseArray(map.get(dbName).toString(), field.getType()));
+                                } else {
+                                    method.invoke(t, JSON.parseObject(map.get(dbName).toString(), field.getType()));
+                                }
+                            }
                         } else {
                             method.invoke(t, map.get(dbName));
                         }
@@ -119,16 +125,16 @@ public class EntityUtil {
         return list;
     }
 
-    public  static <T> Object getId(T entity){
+    public static <T> Object getId(T entity) {
         Class<?> cls = entity.getClass();
         Field[] fields = cls.getDeclaredFields();
         Object id;
-        for (Field field : fields){
-            if (field.isAnnotationPresent(Id.class)){
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(Id.class)) {
                 String name = field.getName();
                 name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                 try {
-                    Method method = cls.getMethod("get"+name);
+                    Method method = cls.getMethod("get" + name);
                     id = method.invoke(entity);
                     return id;
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

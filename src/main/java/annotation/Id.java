@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Id {
-    String value() default "id";
-    String type() default JdbcType.DEFAULT_PK;
+    String value() default "";
+    String type() default JdbcType.UNDEFINE;
     String idType() default IdType.AUTO;
 }

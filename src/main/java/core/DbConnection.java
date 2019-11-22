@@ -27,7 +27,7 @@ public class DbConnection implements IDbConnection {
 
     private final Logger logger = LoggerFactory.getLogger(DbConnection.class);
 
-    private Connection connection;
+    private  Connection connection;
     private boolean onTransaction = false;
     private DataSource dataSource;
     private Configuration configuration;
@@ -67,12 +67,11 @@ public class DbConnection implements IDbConnection {
         if (isAuto) {
             genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
         }
-        PreparedStatement preparedStatement = null;
-        if (debugModel(configuration)) {
-            logger.info("Execute sql : " + statement.getSql());
-            logger.info("Params : " + statement.getParams().toString());
-        }
+        PreparedStatement preparedStatement;
         try {
+            if (configuration.model == Model.POOL_MODEL) {
+                connection = dataSource.getConnection();
+            }
             preparedStatement = statement.createPreparedStatement(connection, genflag);
             int row = preparedStatement.executeUpdate();
             ResultSet rs = preparedStatement.getGeneratedKeys();
@@ -162,13 +161,10 @@ public class DbConnection implements IDbConnection {
         long start = System.currentTimeMillis();
         IStatement statement = Statement.createInsertStatement(entity);
         Object index = execute(statement, statement.isAuto());
-        if (statement.isAuto()) {
-            EntityUtil.setId(entity, index);
-        }
+        EntityUtil.setId(entity, index);
         long end = System.currentTimeMillis();
         logger.info("Cost : " + (end - start) + "ms");
-        String s = index.toString();
-        return Integer.valueOf(s);
+        return Integer.valueOf(index.toString());
     }
 
     @Override
@@ -185,11 +181,14 @@ public class DbConnection implements IDbConnection {
     public void openTransaction(Supplier<?> f) {
         long start = System.currentTimeMillis();
         try {
+            if (configuration.model == Model.POOL_MODEL) {
+                connection = dataSource.getConnection();
+            }
             logger.info("open transaction");
             connection.setAutoCommit(onTransaction);
             f.get();
             connection.commit();
-            logger.info("commit cost: " +(System.currentTimeMillis()-start)+"ms");
+            logger.info("commit cost: " + (System.currentTimeMillis() - start) + "ms");
         } catch (SQLException e) {
             e.printStackTrace();
             try {
@@ -237,12 +236,12 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int delete(T entity) {
         Serializable id = (Serializable) EntityUtil.getId(entity);
-        return deleteById(entity.getClass(),id);
+        return deleteById(entity.getClass(), id);
     }
 
     @Override
-    public <T> int deleteByIds(Class<T> cls,List<Object> ids) {
-        IStatement statement = Statement.createDeleteStatement(cls,ids);
+    public <T> int deleteByIds(Class<T> cls, List<Object> ids) {
+        IStatement statement = Statement.createDeleteStatement(cls, ids);
         return executeUpdate(statement);
     }
 

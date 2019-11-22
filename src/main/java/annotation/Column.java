@@ -10,6 +10,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Column {
-    String name();
+    String value() default "";
     String jdbcType() default JdbcType.UNDEFINE;
 }
