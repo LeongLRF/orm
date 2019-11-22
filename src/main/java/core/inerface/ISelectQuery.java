@@ -234,4 +234,6 @@ public interface ISelectQuery<T> {
         }
         return this;
     }
+
+    ISelectQuery<T> apply(IFilter<T> filter);
 }

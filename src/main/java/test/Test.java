@@ -5,6 +5,8 @@ import config.Configuration;
 import core.DbConnection;
 import core.Statement;
 import core.TableInfo;
+import core.inerface.IFilter;
+import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
 import util.EntityUtil;
 
@@ -34,9 +36,16 @@ public class Test {
             debug = true;
         }};
         DbConnection db = new DbConnection(connection, config);
-        db.openTransaction(()->{
-            db.form(User.class).toList();
-            return null;
-        });
+        Filter filter = new Filter();
+        db.form(User.class).apply(filter).toList();
+
+    }
+    static class  Filter implements IFilter<User>{
+
+        @Override
+        public ISelectQuery<User> apply(ISelectQuery<User> q) {
+            return q.whereEq("name","Leong")
+                    .whereEq("trueName","梁荣锋");
+        }
     }
 }

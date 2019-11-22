@@ -2,6 +2,7 @@ package core;
 
 import com.mysql.cj.util.StringUtils;
 import core.inerface.IDbConnection;
+import core.inerface.IFilter;
 import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
 import fj.P2;
@@ -166,5 +167,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         statement.setSql(column +" like "+ like);
         wheres.add(statement);
         return this;
+    }
+    @Override
+    public ISelectQuery<T> apply(IFilter<T> filter){
+        return filter.apply(this);
     }
 }
