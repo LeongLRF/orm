@@ -40,12 +40,13 @@ public class Test {
         db.form(User.class).apply(filter).toList();
 
     }
-    static class  Filter implements IFilter<User>{
+
+    static class Filter implements IFilter<User> {
 
         @Override
         public ISelectQuery<User> apply(ISelectQuery<User> q) {
-            return q.whereEq("name","Leong")
-                    .whereEq("trueName","梁荣锋");
+            return q.whereEq("name", "Leong")
+                    .whereEq("trueName", "梁荣锋");
         }
     }
 }

@@ -92,7 +92,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     @Override
     public ISelectQuery<T> between(String column, Object value, Object value2) {
         IStatement statement = new Statement();
-        statement.setSql( column + " BETWEEN ? AND ?");
+        statement.setSql(column + " BETWEEN ? AND ?");
         statement.getParams().add(value);
         statement.getParams().add(value2);
         wheres.add(statement);
@@ -148,28 +148,35 @@ public class SelectQuery<T> implements ISelectQuery<T> {
                     .executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
-            logger.info("Cost : "+(System.currentTimeMillis()-start)+"ms");
+        } finally {
+            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return 0;
     }
 
     @Override
-    public ISelectQuery<T> genLike(String column, Object value,int position) {
+    public ISelectQuery<T> genLike(String column, Object value, int position) {
         IStatement statement = new Statement();
         String like = null;
-        switch (position){
-            case 0 : like = "'%"+value+"%'";break;
-            case 1 : like = "'%"+value+"'";break;
-            case 2 : like = "'"+value+"%'";break;
+        switch (position) {
+            case 0:
+                like = "'%" + value + "%'";
+                break;
+            case 1:
+                like = "'%" + value + "'";
+                break;
+            case 2:
+                like = "'" + value + "%'";
+                break;
             default:
         }
-        statement.setSql(column +" like "+ like);
+        statement.setSql(column + " like " + like);
         wheres.add(statement);
         return this;
     }
+
     @Override
-    public ISelectQuery<T> apply(IFilter<T> filter){
+    public ISelectQuery<T> apply(IFilter<T> filter) {
         return filter.apply(this);
     }
 }
