@@ -36,8 +36,8 @@ public class Test {
             debug = true;
         }};
         DbConnection db = new DbConnection(connection, config);
-        Filter filter = new Filter();
-        db.form(User.class).apply(filter).toList();
+        UserTest userTest = new UserTest();
+        db.insert(userTest);
 
     }
 

@@ -6,4 +6,5 @@ package util;
  */
 public class IdType {
     public static final String AUTO = "auto";
+    public static final String UNDEFINE = "";
 }

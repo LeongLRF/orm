@@ -19,8 +19,12 @@ public class EntityUtil {
     public static <T> TableInfo getTableInfo(Class<T> cls) {
         Field[] fields = cls.getDeclaredFields();
         Table table = cls.getAnnotation(Table.class);
+        if (table==null) {
+            cls = (Class<T>) cls.getSuperclass();
+            return getTableInfo(cls);
+        }
         TableInfo info = new TableInfo();
-        info.setCls(cls);
+        info.setCls(cls.getSuperclass());
         info.setTableName(table.value());
         Map<String, ColumnInfo> columnInfos = new HashMap<>(16);
         Arrays.stream(fields).forEach(it -> {
@@ -40,6 +44,9 @@ public class EntityUtil {
 
     public static <T> Map<String, Object> getValues(T entity) {
         Class<?> cls = entity.getClass();
+        if ( cls.getAnnotation(Table.class)==null){
+            cls = cls.getSuperclass();
+        }
         Field[] fields = cls.getDeclaredFields();
         Map<String, Object> values = new HashMap<>();
         for (Field field : fields) {

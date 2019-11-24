@@ -1,6 +1,5 @@
 package core.inerface;
 
-import com.sun.xml.internal.ws.developer.Serialization;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
