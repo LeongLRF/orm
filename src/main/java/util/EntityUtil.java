@@ -13,7 +13,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
-
+/**
+ * @author Leong
+ */
+@SuppressWarnings("all")
 public class EntityUtil {
 
     public static <T> TableInfo getTableInfo(Class<T> cls) {
@@ -121,7 +124,6 @@ public class EntityUtil {
                         } else {
                             method.invoke(t, map.get(dbName));
                         }
-
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
