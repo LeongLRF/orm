@@ -230,6 +230,7 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int deleteById(Class<T> cls, Serializable id) {
         IStatement statement = Statement.createDeleteStatement(cls, id);
+        DefaultCache.update(cls);
         return executeUpdate(statement);
     }
 
@@ -242,6 +243,7 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int deleteByIds(Class<T> cls, List<Object> ids) {
         IStatement statement = Statement.createDeleteStatement(cls, ids);
+        DefaultCache.update(cls);
         return executeUpdate(statement);
     }
 
