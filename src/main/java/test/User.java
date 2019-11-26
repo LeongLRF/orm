@@ -7,7 +7,7 @@ import lombok.Data;
 import util.JdbcType;
 
 @Data
-@Table("user")
+@Table(value = "user",cache = true,expireTime = 600)
 public class User {
 
     @Id("id")

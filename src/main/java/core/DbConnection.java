@@ -10,12 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.EntityUtil;
 import util.Model;
+import util.StringPool;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.*;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +30,7 @@ public class DbConnection implements IDbConnection {
 
     private final Logger logger = LoggerFactory.getLogger(DbConnection.class);
 
-    private  Connection connection;
+    private Connection connection;
     private boolean onTransaction = false;
     private DataSource dataSource;
     private Configuration configuration;
@@ -63,27 +66,28 @@ public class DbConnection implements IDbConnection {
 
 
     private Object execute(IStatement statement, boolean isAuto) {
-        int genflag = java.sql.Statement.NO_GENERATED_KEYS;
-        if (isAuto) {
-            genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
-        }
-        PreparedStatement preparedStatement;
-        try {
-            if (configuration.model == Model.POOL_MODEL) {
-                connection = dataSource.getConnection();
+        return connectionOp((c,p) -> {
+            int genflag = java.sql.Statement.NO_GENERATED_KEYS;
+            if (isAuto) {
+                genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
             }
-            preparedStatement = statement.createPreparedStatement(connection, genflag);
-            int row = preparedStatement.executeUpdate();
-            ResultSet rs = preparedStatement.getGeneratedKeys();
-            Object key = 0;
-            if (rs.next()) {
-                key = rs.getObject(row);
+            try {
+                if (configuration.model == Model.POOL_MODEL) {
+                    connection = dataSource.getConnection();
+                }
+                p = statement.createPreparedStatement(c, genflag);
+                int row = p.executeUpdate();
+                ResultSet rs = p.getGeneratedKeys();
+                Object key = 0;
+                if (rs.next()) {
+                    key = rs.getObject(row);
+                }
+                return key;
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-            return key;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
+            return 0;
+        });
     }
 
     @SuppressWarnings("all")
@@ -96,27 +100,24 @@ public class DbConnection implements IDbConnection {
             logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
             return list;
         }
-        PreparedStatement preparedStatement = null;
-        try {
-            if (configuration.model == Model.POOL_MODEL) {
-                connection = dataSource.getConnection();
+
+        return (List<T>) connectionOp((c, p) -> {
+            try {
+                p = c.prepareStatement(p3._2());
+                setParams(p, p3._3());
+                List<T> list = EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(p.executeQuery()));
+                DefaultCache.setValue(p3._1(), p3._2(), (List<Object>) list);
+                logger.info("Execute SQL : " + p3._2());
+                logger.info("Params : " + p3._3().toString());
+                return list;
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-            preparedStatement = connection.prepareStatement(p3._2());
-            setParams(preparedStatement, p3._3());
-            List<T> list = EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(preparedStatement.executeQuery()));
-            DefaultCache.setValue(p3._1(), p3._2(), (List<Object>) list);
-            logger.info("Execute SQL : " + p3._2());
-            logger.info("Params : " + p3._3().toString());
-            return list;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
-        }
-        return null;
+            return null;
+        });
     }
 
-    public int executeUpdate(IStatement statement) {
+    private int executeUpdate(IStatement statement) {
         PreparedStatement preparedStatement;
         long start = System.currentTimeMillis();
         try {
@@ -164,7 +165,7 @@ public class DbConnection implements IDbConnection {
         EntityUtil.setId(entity, index);
         long end = System.currentTimeMillis();
         logger.info("Cost : " + (end - start) + "ms");
-        return Integer.valueOf(index.toString());
+        return Integer.parseInt(index.toString());
     }
 
     @Override
@@ -266,7 +267,7 @@ public class DbConnection implements IDbConnection {
         return "(" + Stream.iterate("?", p -> p).limit(num).collect(Collectors.joining(",")) + ")";
     }
 
-    public static void setParams(PreparedStatement statement, List<Object> values) {
+    static void setParams(PreparedStatement statement, List<Object> values) {
         if (values == null) {
             return;
         }
@@ -279,7 +280,7 @@ public class DbConnection implements IDbConnection {
         }
     }
 
-    public static List<Map<String, Object>> fetchResultSet(ResultSet rs) {
+    private static List<Map<String, Object>> fetchResultSet(ResultSet rs) {
         ResultSetMetaData meta;
         try {
             meta = rs.getMetaData();
@@ -315,22 +316,13 @@ public class DbConnection implements IDbConnection {
         return null;
     }
 
-    private void release(Connection connection, PreparedStatement preparedStatement) {
-        if (preparedStatement != null) {
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            preparedStatement = null;
+    private Object connectionOp(BiFunction<Connection, PreparedStatement, Object> action) {
+        try (Connection connection1 =  connection;
+             PreparedStatement preparedStatement = null) {
+           return action.apply(connection1, preparedStatement);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            connection = null;
-        }
+        return null;
     }
 }

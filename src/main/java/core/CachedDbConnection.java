@@ -2,24 +2,34 @@ package core;
 
 import com.alibaba.fastjson.JSON;
 import config.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import util.EntityUtil;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class CachableDbConnection extends DbConnection {
+public class CachedDbConnection extends DbConnection {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final JedisPool jedisPool;
 
-    public CachableDbConnection(DataSource dataSource, Configuration configuration, JedisPool jedisPool) throws SQLException {
+    public CachedDbConnection(DataSource dataSource, Configuration configuration, JedisPool jedisPool) throws SQLException {
         super(dataSource, configuration);
+        this.jedisPool = jedisPool;
+    }
+
+    public CachedDbConnection(Connection connection, Configuration config, JedisPool jedisPool) {
+        super(connection, config);
         this.jedisPool = jedisPool;
     }
 
@@ -35,14 +45,16 @@ public class CachableDbConnection extends DbConnection {
 
     @Override
     public <T> int insert(T entity) {
+        int result = super.insert(entity);
         setValue(entity);
-        return super.insert(entity);
+        return result;
     }
 
     @Override
     public <T> int insert(List<T> entities) {
+        int result = super.insert(entities);
         setValue(entities);
-        return super.insert(entities);
+        return result;
     }
 
 
@@ -60,16 +72,19 @@ public class CachableDbConnection extends DbConnection {
 
     @Override
     public <T> int update(List<T> entities) {
+        del(entities);
         return super.update(entities);
     }
 
     @Override
     public <T> int deleteById(Class<T> cls, Serializable id) {
+        del(cls,id);
         return super.deleteById(cls, id);
     }
 
     @Override
     public <T> int delete(T entity) {
+        del(entity);
         return super.delete(entity);
     }
 
@@ -79,13 +94,22 @@ public class CachableDbConnection extends DbConnection {
     }
 
     private <T> T getCache(Class<T> cls, Object key) {
+        long start = System.currentTimeMillis();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         if (!tableInfo.isCache()) {
             return super.getById(cls, (Serializable) key);
         }
         return op(j -> {
             String value = j.get(redisKey(prefix(tableInfo), key));
-            return JSON.parseObject(value, cls);
+            if (value!=null) {
+                logger.info("get data from redis,cost :"+(System.currentTimeMillis()-start)+"ms");
+                return JSON.parseObject(value,cls);
+            }else {
+                T t = super.getById(cls, (Serializable) key);
+                setValue(JSON.toJSONString(t),redisKey(prefix(tableInfo),key),tableInfo.getExpireTime());
+                return t ;
+            }
+
         });
     }
 
@@ -117,8 +141,10 @@ public class CachableDbConnection extends DbConnection {
     private <T> void setValue(T entity) {
         Class<?> cls = entity.getClass();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
-        String key = redisKey(prefix(tableInfo), EntityUtil.getId(entity));
-        setValue(JSON.toJSONString(entity), key, tableInfo.getExpireTime());
+        if (tableInfo.isCache()) {
+            String key = redisKey(prefix(tableInfo), EntityUtil.getId(entity));
+            setValue(JSON.toJSONString(entity), key, tableInfo.getExpireTime());
+        }
     }
 
     private <T> void setValue(List<T> entities) {
@@ -134,6 +160,9 @@ public class CachableDbConnection extends DbConnection {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         String key = redisKey(prefix(tableInfo), id);
         del(key);
+    }
+    private <T> void del(Class<T> cls,List<Object> ids){
+        ids.forEach(it ->del(cls, (Serializable) it));
     }
     private <T> void del(List<T> entities){
 
