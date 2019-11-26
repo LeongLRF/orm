@@ -37,6 +37,16 @@ public class TableInfo {
      */
     private boolean autoIncrement;
 
+    /**
+     * 是否开启缓存
+     */
+    private boolean cache;
+
+    /**
+     * 缓存过期时间
+     */
+    private int expireTime;
+
     List<String> columns(){
         return columns.values().stream().map(ColumnInfo::getName).collect(Collectors.toList());
     }

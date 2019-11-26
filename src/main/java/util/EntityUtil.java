@@ -29,6 +29,8 @@ public class EntityUtil {
         TableInfo info = new TableInfo();
         info.setCls(cls.getSuperclass());
         info.setTableName(table.value());
+        info.setCache(table.cache());
+        info.setExpireTime(table.expireTime());
         Map<String, ColumnInfo> columnInfos = new HashMap<>(16);
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {

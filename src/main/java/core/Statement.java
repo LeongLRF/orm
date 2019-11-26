@@ -1,10 +1,8 @@
 package core;
 
 import com.mysql.cj.util.StringUtils;
-import core.inerface.IDbConnection;
 import core.inerface.IStatement;
 import fj.P;
-import fj.P1;
 import fj.P2;
 import lombok.Data;
 import org.slf4j.Logger;

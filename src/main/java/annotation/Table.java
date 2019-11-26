@@ -10,4 +10,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface Table {
     String value() default "";
+    boolean cache() default false;
+    int expireTime() default 60;
 }
