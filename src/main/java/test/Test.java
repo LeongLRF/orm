@@ -29,9 +29,7 @@ public class Test {
         }};
         CachedDbConnection db = new CachedDbConnection(connection,config,jedisPool);
         User users = db.getById(User.class,21);
-        db.insert(users);
         System.out.println(users);
-
     }
 
     static class Filter implements IFilter<User> {

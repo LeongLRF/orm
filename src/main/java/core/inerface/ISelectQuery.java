@@ -4,6 +4,7 @@ import core.TableInfo;
 
 import java.io.Serializable;
 import java.sql.Connection;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -61,7 +62,7 @@ public interface ISelectQuery<T> {
      * @return SelectQuery
      * @see core.SelectQuery
      */
-    ISelectQuery<T> in(String column, List<Object> ids);
+    ISelectQuery<T> in(String column, Collection<?> ids);
 
     /**
      * WHERE字符串拍拼接 例如：SELECT * FROM table WHERE xxx = xxx

@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -61,7 +62,7 @@ public interface IDbConnection {
      * @param ids 主键列表
      * @return 查询结果
      */
-    <T> List<T> getByIds(Class<T> cls, List<Object> ids);
+    <T> List<T> getByIds(Class<T> cls, Collection<?> ids);
 
     /**
      * sql执行器

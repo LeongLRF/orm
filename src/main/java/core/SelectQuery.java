@@ -15,6 +15,7 @@ import util.StringPool;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -59,7 +60,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     }
 
     @Override
-    public ISelectQuery<T> in(String column, List<Object> values) {
+    public ISelectQuery<T> in(String column, Collection<?> values) {
         if (!values.isEmpty()) {
             IStatement statement = new Statement();
             statement.setSql(column + " in " + DbConnection.createParameterPlaceHolder(values.size()));

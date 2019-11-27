@@ -12,24 +12,30 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * @author Leong
+ * 基于redis的二级缓存
+ * key为tableName:id
+ */
 public class CachedDbConnection extends DbConnection {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final JedisPool jedisPool;
 
-    public CachedDbConnection(DataSource dataSource, Configuration configuration, JedisPool jedisPool) throws SQLException {
-        super(dataSource, configuration);
+    public CachedDbConnection(Connection connection, Configuration config, JedisPool jedisPool) {
+        super(connection, config);
         this.jedisPool = jedisPool;
     }
 
-    public CachedDbConnection(Connection connection, Configuration config, JedisPool jedisPool) {
-        super(connection, config);
+    public CachedDbConnection(DataSource dataSource, Configuration configuration,JedisPool jedisPool) throws SQLException {
+        super(dataSource, configuration);
         this.jedisPool = jedisPool;
     }
 
@@ -39,7 +45,7 @@ public class CachedDbConnection extends DbConnection {
     }
 
     @Override
-    public <T> List<T> getByIds(Class<T> cls, List<Object> ids) {
+    public <T> List<T> getByIds(Class<T> cls, Collection<?> ids) {
         return getCaches(cls, ids);
     }
 
@@ -60,7 +66,7 @@ public class CachedDbConnection extends DbConnection {
 
     @Override
     public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
-        del(cls,id);
+        del(cls, id);
         super.updateById(cls, id, updates);
     }
 
@@ -78,7 +84,7 @@ public class CachedDbConnection extends DbConnection {
 
     @Override
     public <T> int deleteById(Class<T> cls, Serializable id) {
-        del(cls,id);
+        del(cls, id);
         return super.deleteById(cls, id);
     }
 
@@ -90,6 +96,7 @@ public class CachedDbConnection extends DbConnection {
 
     @Override
     public <T> int deleteByIds(Class<T> cls, List<Object> ids) {
+        del(cls, ids);
         return super.deleteByIds(cls, ids);
     }
 
@@ -101,19 +108,19 @@ public class CachedDbConnection extends DbConnection {
         }
         return op(j -> {
             String value = j.get(redisKey(prefix(tableInfo), key));
-            if (value!=null) {
-                logger.info("get data from redis,cost :"+(System.currentTimeMillis()-start)+"ms");
-                return JSON.parseObject(value,cls);
-            }else {
+            if (value != null) {
+                logger.info("get data from redis,cost :" + (System.currentTimeMillis() - start) + "ms");
+                return JSON.parseObject(value, cls);
+            } else {
                 T t = super.getById(cls, (Serializable) key);
-                setValue(JSON.toJSONString(t),redisKey(prefix(tableInfo),key),tableInfo.getExpireTime());
-                return t ;
+                setValue(JSON.toJSONString(t), redisKey(prefix(tableInfo), key), tableInfo.getExpireTime());
+                return t;
             }
 
         });
     }
 
-    private <T> List<T> getCaches(Class<T> cls, List<Object> keys) {
+    private <T> List<T> getCaches(Class<T> cls, Collection<?> keys) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         if (!tableInfo.isCache()) {
             return super.getByIds(cls, keys);
@@ -150,7 +157,8 @@ public class CachedDbConnection extends DbConnection {
     private <T> void setValue(List<T> entities) {
         entities.forEach(this::setValue);
     }
-    private <T> void del(T entity){
+
+    private <T> void del(T entity) {
         Class<?> cls = entity.getClass();
         Object id = EntityUtil.getId(entity);
         del(cls, (Serializable) id);
@@ -161,11 +169,13 @@ public class CachedDbConnection extends DbConnection {
         String key = redisKey(prefix(tableInfo), id);
         del(key);
     }
-    private <T> void del(Class<T> cls,List<Object> ids){
-        ids.forEach(it ->del(cls, (Serializable) it));
-    }
-    private <T> void del(List<T> entities){
 
+    private <T> void del(Class<T> cls, List<Object> ids) {
+        ids.forEach(it -> del(cls, (Serializable) it));
+    }
+
+    private <T> void del(List<T> entities) {
+        entities.forEach(this::del);
     }
 
     private void del(String key) {

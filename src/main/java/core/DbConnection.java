@@ -94,19 +94,11 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> List<T> genExecute(P3<Class<T>, String, List<Object>> p3) {
         long start = System.currentTimeMillis();
-        if (DefaultCache.getValue(p3._1(), p3._2()) != null) {
-            List<T> list = (List<T>) DefaultCache.getValue(p3._1(), p3._2());
-            logger.info("get data from cache");
-            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
-            return list;
-        }
-
         return (List<T>) connectionOp((c, p) -> {
             try {
                 p = c.prepareStatement(p3._2());
                 setParams(p, p3._3());
                 List<T> list = EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(p.executeQuery()));
-                DefaultCache.setValue(p3._1(), p3._2(), (List<Object>) list);
                 logger.info("Execute SQL : " + p3._2());
                 logger.info("Params : " + p3._3().toString());
                 return list;
@@ -151,7 +143,7 @@ public class DbConnection implements IDbConnection {
     }
 
     @Override
-    public <T> List<T> getByIds(Class<T> cls, List<Object> ids) {
+    public <T> List<T> getByIds(Class<T> cls, Collection<?> ids) {
         ISelectQuery<T> selectQuery = new SelectQuery<>(this, cls);
         selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(), ids);
         return genExecute(makeSql(selectQuery));
@@ -203,7 +195,6 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> void updateById(Class<T> cls, Serializable id, Consumer<T> updates) {
-        DefaultCache.update(cls);
         IStatement statement = Statement.createUpdateStatement(cls, updates, id);
         executeUpdate(statement);
     }
@@ -211,7 +202,6 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int update(T entity) {
         Object id = EntityUtil.getId(entity);
-        DefaultCache.update(entity.getClass());
         IStatement statement = Statement.createUpdateStatement(entity, id);
         return executeUpdate(statement);
     }
@@ -231,7 +221,6 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int deleteById(Class<T> cls, Serializable id) {
         IStatement statement = Statement.createDeleteStatement(cls, id);
-        DefaultCache.update(cls);
         return executeUpdate(statement);
     }
 
@@ -244,7 +233,6 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int deleteByIds(Class<T> cls, List<Object> ids) {
         IStatement statement = Statement.createDeleteStatement(cls, ids);
-        DefaultCache.update(cls);
         return executeUpdate(statement);
     }
 
@@ -317,11 +305,27 @@ public class DbConnection implements IDbConnection {
     }
 
     private Object connectionOp(BiFunction<Connection, PreparedStatement, Object> action) {
-        try (Connection connection1 =  connection;
+        long start = System.currentTimeMillis();
+        try (Connection connection1 =  con();
              PreparedStatement preparedStatement = null) {
            return action.apply(connection1, preparedStatement);
         } catch (SQLException e) {
             e.printStackTrace();
+        }finally {
+            logger.info("Cost : " +(System.currentTimeMillis()-start) +"ms");
+        }
+        return null;
+    }
+
+    private Connection con(){
+        if (configuration.model == Model.POOL_MODEL && dataSource!=null){
+            try {
+                return dataSource.getConnection();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }else{
+            return connection;
         }
         return null;
     }

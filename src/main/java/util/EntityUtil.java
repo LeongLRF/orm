@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
+
 /**
  * @author Leong
  */
@@ -22,7 +23,7 @@ public class EntityUtil {
     public static <T> TableInfo getTableInfo(Class<T> cls) {
         Field[] fields = cls.getDeclaredFields();
         Table table = cls.getAnnotation(Table.class);
-        if (table==null) {
+        if (table == null) {
             cls = (Class<T>) cls.getSuperclass();
             return getTableInfo(cls);
         }
@@ -49,12 +50,27 @@ public class EntityUtil {
 
     public static <T> Map<String, Object> getValues(T entity) {
         Class<?> cls = entity.getClass();
-        if ( cls.getAnnotation(Table.class)==null){
+        if (cls.getAnnotation(Table.class) == null) {
             cls = cls.getSuperclass();
         }
         Field[] fields = cls.getDeclaredFields();
         Map<String, Object> values = new HashMap<>();
         for (Field field : fields) {
+            if (field.isAnnotationPresent(Id.class)) {
+                Id id = field.getAnnotation(Id.class);
+                if (id.idType() != StringPool.AUTO) {
+                    String name = field.getName();
+                    name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
+                    Method method;
+                    try {
+                        method = cls.getMethod("get" + name);
+                        Class<?> type = field.getType();
+                        values.put(id.value(), TypeConverter.convert(method.invoke(entity), type));
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             if (field.isAnnotationPresent(Column.class)) {
                 Column column = field.getAnnotation(Column.class);
                 String name = field.getName();
