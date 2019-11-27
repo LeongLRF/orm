@@ -10,6 +10,9 @@ import redis.clients.jedis.JedisPool;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
@@ -28,8 +31,8 @@ public class Test {
             debug = true;
         }};
         CachedDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-        User users = db.getById(User.class,21);
-        System.out.println(users);
+        Class<?> cls = List.class;
+        System.out.println(Collection.class.isAssignableFrom(List.class));
     }
 
     static class Filter implements IFilter<User> {

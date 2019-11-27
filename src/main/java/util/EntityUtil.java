@@ -38,6 +38,9 @@ public class EntityUtil {
                 Id primaryKey = it.getAnnotation(Id.class);
                 info.setAutoIncrement(primaryKey.idType().equals(StringPool.AUTO));
                 info.setPrimaryKey(ColumnInfo.createColumn(primaryKey.value(), primaryKey.type(), ColumnInfo.PRIMARY_KEY));
+                if (!info.isAutoIncrement()){
+                    columnInfos.put(it.getName(),ColumnInfo.createColumn(primaryKey.value(),primaryKey.type(),ColumnInfo.NORMAL_KEY));
+                }
             }
             if (it.isAnnotationPresent(Column.class)) {
                 Column column = it.getAnnotation(Column.class);
@@ -133,7 +136,7 @@ public class EntityUtil {
                         Method method = cls.getMethod("set" + name, field.getType());
                         if (type.equals(StringPool.JSON)) {
                             if (map.get(dbName) != null) {
-                                if (field.getType().getSuperclass().getName().contains("Collection")) {
+                                if (Collection.class.isAssignableFrom(field.getType())) {
                                     method.invoke(t, JSON.parseArray(map.get(dbName).toString(), field.getType()));
                                 } else {
                                     method.invoke(t, JSON.parseObject(map.get(dbName).toString(), field.getType()));
