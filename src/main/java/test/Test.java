@@ -31,8 +31,6 @@ public class Test {
             debug = true;
         }};
         CachedDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-        Class<?> cls = List.class;
-        System.out.println(Collection.class.isAssignableFrom(List.class));
     }
 
     static class Filter implements IFilter<User> {

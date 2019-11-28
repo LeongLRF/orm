@@ -38,8 +38,8 @@ public class EntityUtil {
                 Id primaryKey = it.getAnnotation(Id.class);
                 info.setAutoIncrement(primaryKey.idType().equals(StringPool.AUTO));
                 info.setPrimaryKey(ColumnInfo.createColumn(primaryKey.value(), primaryKey.type(), ColumnInfo.PRIMARY_KEY));
-                if (!info.isAutoIncrement()){
-                    columnInfos.put(it.getName(),ColumnInfo.createColumn(primaryKey.value(),primaryKey.type(),ColumnInfo.NORMAL_KEY));
+                if (!info.isAutoIncrement()) {
+                    columnInfos.put(it.getName(), ColumnInfo.createColumn(primaryKey.value(), primaryKey.type(), ColumnInfo.NORMAL_KEY));
                 }
             }
             if (it.isAnnotationPresent(Column.class)) {
@@ -61,12 +61,12 @@ public class EntityUtil {
         for (Field field : fields) {
             if (field.isAnnotationPresent(Id.class)) {
                 Id id = field.getAnnotation(Id.class);
-                if (id.idType() != StringPool.AUTO) {
+                if (!id.idType().equals(StringPool.AUTO)) {
                     String name = field.getName();
                     name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                     Method method;
                     try {
-                        method = cls.getMethod("get" + name);
+                        method = cls.getMethod(((Boolean.TYPE == field.getType()) ? "is" : "get") + name);
                         Class<?> type = field.getType();
                         values.put(id.value(), TypeConverter.convert(method.invoke(entity), type));
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -80,7 +80,7 @@ public class EntityUtil {
                 name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
                 Method method;
                 try {
-                    method = cls.getMethod("get" + name);
+                    method = cls.getMethod(((Boolean.TYPE == field.getType()) ? "is" : "get") + name);
                     Class<?> type = field.getType();
                     if (column.jdbcType().equals(StringPool.JSON)) {
                         values.put(field.getName(), method.invoke(entity) == null ? null : JSON.toJSONString(method.invoke(entity)));
@@ -137,7 +137,7 @@ public class EntityUtil {
                         if (type.equals(StringPool.JSON)) {
                             if (map.get(dbName) != null) {
                                 if (Collection.class.isAssignableFrom(field.getType())) {
-                                    method.invoke(t, JSON.parseArray(map.get(dbName).toString(), field.getType()));
+                                    method.invoke(t, JSON.parseObject(map.get(dbName).toString(), field.getType()));
                                 } else {
                                     method.invoke(t, JSON.parseObject(map.get(dbName).toString(), field.getType()));
                                 }
