@@ -41,6 +41,10 @@ public class DbConnection implements IDbConnection {
         this.configuration = configuration;
         logger.info("Init DbConnection with default model");
     }
+    public DbConnection(Configuration configuration){
+        this.dataSource = configuration.dataSource;
+        this.configuration = configuration;
+    }
 
     public DbConnection(DataSource dataSource, Configuration configuration) throws SQLException {
         this.dataSource = dataSource;

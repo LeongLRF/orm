@@ -33,6 +33,10 @@ public class CachedDbConnection extends DbConnection {
         super(connection, config);
         this.jedisPool = jedisPool;
     }
+    public CachedDbConnection(Configuration configuration) throws SQLException {
+        super(configuration.dataSource,configuration);
+        this.jedisPool = configuration.jedisPool;
+    }
 
     public CachedDbConnection(DataSource dataSource, Configuration configuration,JedisPool jedisPool) throws SQLException {
         super(dataSource, configuration);
