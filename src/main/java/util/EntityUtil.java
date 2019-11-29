@@ -28,7 +28,7 @@ public class EntityUtil {
             return getTableInfo(cls);
         }
         TableInfo info = new TableInfo();
-        info.setCls(cls.getSuperclass());
+        info.setCls(cls);
         info.setTableName(table.value());
         info.setCache(table.cache());
         info.setExpireTime(table.expireTime());
@@ -96,7 +96,7 @@ public class EntityUtil {
     }
 
     public static <T> void setId(T entity, Object id) {
-        Class<?> cls = entity.getClass();
+        Class<?> cls = getTableInfo(entity.getClass()).getCls();
         Field[] fields = cls.getDeclaredFields();
         Stream.of(fields).filter(field -> field.isAnnotationPresent(Id.class)).findFirst()
                 .map(it -> {
