@@ -39,6 +39,7 @@ public interface IDbConnection {
      */
     <T> ISelectQuery<T> form(Class<T> cls);
 
+
     /**
      * 自定义sql
      * @param cls 实体类型
@@ -69,7 +70,7 @@ public interface IDbConnection {
      * @param p3 查询参数 p1:实体类型 p2:sql p3:参数
      * @return 查询结果
      */
-    <T> List<T> genExecute(P3<Class<T>,String,List<Object>> p3);
+    <T> List<T> genExecute(P3<Class<?>,String,List<Object>> p3);
 
     /**
      * 插入单条数据

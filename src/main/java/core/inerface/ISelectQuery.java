@@ -75,6 +75,11 @@ public interface ISelectQuery<T> {
     ISelectQuery<T> whereEq(String column, Object value);
 
     /**
+     * 启动lambda查询
+     */
+    ILambdaQuery<T> lambdaQuery();
+
+    /**
      * whereEq 动态查询
      *
      * @param condition true则执行查询

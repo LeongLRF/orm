@@ -2,19 +2,14 @@ package test;
 
 
 import config.Configuration;
-import core.CachedDbConnection;
 import core.DbConnection;
 import core.inerface.IDbConnection;
-import core.inerface.IFilter;
-import core.inerface.ISelectQuery;
 import redis.clients.jedis.JedisPool;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 
 public class Test {
     public static void main(String[] args) {
@@ -33,7 +28,6 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new DbConnection(connection, config);
-        db.form(User.class).toList();
-
+        System.out.println(db.getByIds(User.class, Arrays.asList(11,12)));
     }
 }

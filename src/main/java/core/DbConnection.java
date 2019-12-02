@@ -91,13 +91,13 @@ public class DbConnection implements IDbConnection {
 
     @SuppressWarnings("all")
     @Override
-    public <T> List<T> genExecute(P3<Class<T>, String, List<Object>> p3) {
+    public <T> List<T> genExecute(P3<Class<?>, String, List<Object>> p3) {
         long start = System.currentTimeMillis();
         return (List<T>) connectionOp((c, p) -> {
             try {
                 p = c.prepareStatement(p3._2());
                 setParams(p, p3._3());
-                List<T> list = EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(p.executeQuery()));
+                List<T> list = (List<T>) EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(p.executeQuery()));
                 logger.info("Execute SQL : " + p3._2());
                 logger.info("Params : " + p3._3().toString());
                 return list;
@@ -142,9 +142,9 @@ public class DbConnection implements IDbConnection {
 
     @Override
     public <T> List<T> getByIds(Class<T> cls, Collection<?> ids) {
-        ISelectQuery<T> selectQuery = new SelectQuery<>(this, cls);
+        SelectQuery<T> selectQuery = new SelectQuery<>(this, cls);
         selectQuery.in(selectQuery.getTableInfo().getPrimaryKey().getName(), ids);
-        return genExecute(makeSql(selectQuery));
+        return genExecute(selectQuery.makeSql());
     }
 
     @Override
@@ -234,19 +234,13 @@ public class DbConnection implements IDbConnection {
         return executeUpdate(statement);
     }
 
-    private static <T> P3<Class<T>, String, List<Object>> makeSql(IStatement statement, Class<T> cls) {
+    private static P3<Class<?>, String, List<Object>> makeSql(IStatement statement, Class<?> cls) {
         String sql = statement.getSql();
         List<Object> params = statement.getParams();
         return P.p(cls, sql, params);
     }
 
-    static <T> P3<Class<T>, String, List<Object>> makeSql(ISelectQuery<T> selectQuery) {
-        selectQuery.makeSql(selectQuery.getWheres());
-        String sql = selectQuery.getSql();
-        List<Object> params = selectQuery.getParams();
-        Class<T> cls = selectQuery.getCls();
-        return P.p(cls, sql, params);
-    }
+
 
 
     static String createParameterPlaceHolder(int num) {

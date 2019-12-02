@@ -1,11 +1,10 @@
 package core;
 
 import com.mysql.cj.util.StringUtils;
-import core.inerface.IDbConnection;
-import core.inerface.IFilter;
-import core.inerface.ISelectQuery;
-import core.inerface.IStatement;
+import core.inerface.*;
+import fj.P;
 import fj.P2;
+import fj.P3;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +43,11 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         this.connection = connection;
         this.tableInfo = EntityUtil.getTableInfo(cls);
         refreshSql();
+    }
+
+    @Override
+    public ILambdaQuery<T> lambdaQuery(){
+        return new LambdaQuery<>(cls,connection,tableInfo);
     }
 
     private void refreshSql() {
@@ -102,7 +106,17 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public List<T> toList() {
-        return connection.genExecute(DbConnection.makeSql(this));
+        return connection.genExecute(this.makeSql());
+    }
+
+    public  P3<Class<?>, String, List<Object>> makeSql() {
+        this.makeSql(this.getWheres());
+        String sql = this.getSql();
+        List<Object> params = this.getParams();
+        if (!selects.equals("*")){
+            return P.p(Object.class, sql, params);
+        }
+        return P.p(cls, sql, params);
     }
 
 

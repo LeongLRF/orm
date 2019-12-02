@@ -1,5 +1,7 @@
 package core.inerface;
 
+import core.support.SFunction;
+
 import java.util.List;
 import java.util.function.Function;
 
@@ -8,9 +10,9 @@ import java.util.function.Function;
  */
 public interface ILambdaQuery<T>  {
 
-    ILambdaQuery<T> whereEq(Function<T,Object> column,Object value);
+    ILambdaQuery<T> whereEq(SFunction<T,Object> column, Object value);
 
-    ILambdaQuery<T> in(Function<T,Object> column, List<Object> values);
+    ILambdaQuery<T> in(SFunction<T,Object> column, List<Object> values);
 
     List<T> toList();
 
