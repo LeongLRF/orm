@@ -38,7 +38,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     private String orderBy = "";
 
 
-    public SelectQuery(IDbConnection connection, Class<T> cls) {
+    SelectQuery(IDbConnection connection, Class<T> cls) {
         this.cls = cls;
         this.connection = connection;
         this.tableInfo = EntityUtil.getTableInfo(cls);
@@ -46,8 +46,8 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     }
 
     @Override
-    public ILambdaQuery<T> lambdaQuery(){
-        return new LambdaQuery<>(cls,connection,tableInfo);
+    public ILambdaQuery<T> lambdaQuery() {
+        return new LambdaQuery<>(cls, connection, tableInfo);
     }
 
     private void refreshSql() {
@@ -109,11 +109,11 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return connection.genExecute(this.makeSql());
     }
 
-    public  P3<Class<?>, String, List<Object>> makeSql() {
+    P3<Class<?>, String, List<Object>> makeSql() {
         this.makeSql(this.getWheres());
         String sql = this.getSql();
         List<Object> params = this.getParams();
-        if (!selects.equals("*")){
+        if (!selects.equals("*")) {
             return P.p(Object.class, sql, params);
         }
         return P.p(cls, sql, params);
@@ -122,7 +122,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public T one() {
-        List<T> list = toList();
+        List<T> list = (List<T>) toList();
         if (list.isEmpty()) {
             return null;
         }
