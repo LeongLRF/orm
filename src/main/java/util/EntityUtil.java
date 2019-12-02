@@ -7,6 +7,9 @@ import com.alibaba.fastjson.JSON;
 import core.ColumnInfo;
 import core.DbConnection;
 import core.TableInfo;
+import core.TableInfoCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +23,12 @@ import java.util.stream.Stream;
 @SuppressWarnings("all")
 public class EntityUtil {
 
+    private static final Logger logger = LoggerFactory.getLogger(EntityUtil.class);
     public static <T> TableInfo getTableInfo(Class<T> cls) {
+        if (TableInfoCache.get(cls)!=null){
+            logger.info("get table info from cache");
+            return TableInfoCache.get(cls);
+        }
         Field[] fields = cls.getDeclaredFields();
         Table table = cls.getAnnotation(Table.class);
         if (table == null) {
@@ -48,6 +56,7 @@ public class EntityUtil {
             }
         });
         info.setColumns(columnInfos);
+        TableInfoCache.set(cls,info);
         return info;
     }
 

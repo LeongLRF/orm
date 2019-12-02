@@ -3,6 +3,8 @@ package test;
 
 import config.Configuration;
 import core.CachedDbConnection;
+import core.DbConnection;
+import core.inerface.IDbConnection;
 import core.inerface.IFilter;
 import core.inerface.ISelectQuery;
 import redis.clients.jedis.JedisPool;
@@ -17,7 +19,7 @@ import java.util.List;
 public class Test {
     public static void main(String[] args) {
         Connection connection = null;
-        JedisPool jedisPool = new JedisPool("localhost",6379);
+        JedisPool jedisPool = new JedisPool("localhost", 6379);
         try {
             Class.forName("com.mysql.jdbc.Driver");
             String url = "jdbc:mysql://59.110.171.118:3306/test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
@@ -30,15 +32,8 @@ public class Test {
         Configuration config = new Configuration() {{
             debug = true;
         }};
-        CachedDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-    }
+        IDbConnection db = new DbConnection(connection, config);
+        db.form(User.class).toList();
 
-    static class Filter implements IFilter<User> {
-
-        @Override
-        public ISelectQuery<User> apply(ISelectQuery<User> q) {
-            return q.whereEq("name", "Leong")
-                    .whereEq("trueName", "梁荣锋");
-        }
     }
 }

@@ -41,7 +41,8 @@ public class DbConnection implements IDbConnection {
         this.configuration = configuration;
         logger.info("Init DbConnection with default model");
     }
-    public DbConnection(Configuration configuration){
+
+    public DbConnection(Configuration configuration) {
         this.dataSource = configuration.dataSource;
         this.configuration = configuration;
     }
@@ -70,16 +71,10 @@ public class DbConnection implements IDbConnection {
 
 
     private Object execute(IStatement statement, boolean isAuto) {
-        return connectionOp((c,p) -> {
-            int genflag = java.sql.Statement.NO_GENERATED_KEYS;
-            if (isAuto) {
-                genflag = java.sql.Statement.RETURN_GENERATED_KEYS;
-            }
+        return connectionOp((c, p) -> {
             try {
-                if (configuration.model == Model.POOL_MODEL) {
-                    connection = dataSource.getConnection();
-                }
-                p = statement.createPreparedStatement(c, genflag);
+                int genFlag = isAuto ? java.sql.Statement.RETURN_GENERATED_KEYS : java.sql.Statement.NO_GENERATED_KEYS;
+                p = statement.createPreparedStatement(c, genFlag);
                 int row = p.executeUpdate();
                 ResultSet rs = p.getGeneratedKeys();
                 Object key = 0;
@@ -114,20 +109,19 @@ public class DbConnection implements IDbConnection {
     }
 
     private int executeUpdate(IStatement statement) {
-        PreparedStatement preparedStatement;
         long start = System.currentTimeMillis();
-        try {
-            if (configuration.model == Model.POOL_MODEL) {
-                connection = dataSource.getConnection();
+        return (int) connectionOp((c, p) -> {
+            try {
+                p = statement.createPreparedStatement(c, null);
+                return p.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
             }
-            preparedStatement = statement.createPreparedStatement(connection, null);
-            return preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
-        }
-        return 0;
+            return 0;
+        });
+
     }
 
     @Override
@@ -171,30 +165,30 @@ public class DbConnection implements IDbConnection {
             entities.forEach(this::insert);
             return null;
         });
-        return 0;
+        return entities.size();
     }
 
     @Override
     public void openTransaction(Supplier<?> f) {
         long start = System.currentTimeMillis();
-        try {
-            if (configuration.model == Model.POOL_MODEL) {
-                connection = dataSource.getConnection();
-            }
-            logger.info("open transaction");
-            connection.setAutoCommit(onTransaction);
-            f.get();
-            connection.commit();
-            logger.info("commit cost: " + (System.currentTimeMillis() - start) + "ms");
-        } catch (SQLException e) {
-            e.printStackTrace();
+        connectionOp((c, p) -> {
             try {
-                connection.rollback();
-                logger.info("Transaction rollback");
-            } catch (SQLException ex) {
-                ex.printStackTrace();
+                logger.info("open transaction");
+                c.setAutoCommit(onTransaction);
+                f.get();
+                c.commit();
+                logger.info("commit cost: " + (System.currentTimeMillis() - start) + "ms");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                try {
+                    c.rollback();
+                    logger.info("Transaction rollback");
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
-        }
+            return null;
+        });
     }
 
     @Override
@@ -219,7 +213,7 @@ public class DbConnection implements IDbConnection {
             entities.forEach(this::update);
             return null;
         });
-        return 1;
+        return entities.size();
     }
 
     @Override
@@ -310,25 +304,25 @@ public class DbConnection implements IDbConnection {
 
     private Object connectionOp(BiFunction<Connection, PreparedStatement, Object> action) {
         long start = System.currentTimeMillis();
-        try (Connection connection1 =  con();
+        try (Connection connection1 = con();
              PreparedStatement preparedStatement = null) {
-           return action.apply(connection1, preparedStatement);
+            return action.apply(connection1, preparedStatement);
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
-            logger.info("Cost : " +(System.currentTimeMillis()-start) +"ms");
+        } finally {
+            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return null;
     }
 
-    private Connection con(){
-        if (configuration.model == Model.POOL_MODEL && dataSource!=null){
+    private Connection con() {
+        if (configuration.model == Model.POOL_MODEL && dataSource != null) {
             try {
                 return dataSource.getConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             return connection;
         }
         return null;
