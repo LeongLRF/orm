@@ -90,7 +90,6 @@ public class TableInfoCache {
             }
             methodName = methodName.replace(prefix, "");
             methodName = methodName.substring(0, 1).toLowerCase() + methodName.substring(1);
-            System.out.println(methodName);
             Class<?> cls = toClassConfident(normalName(lambda.getImplClass()));
             TableInfo tableInfo = EntityUtil.getTableInfo(cls);
             if (tableInfo == null) {
