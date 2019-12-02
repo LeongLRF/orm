@@ -21,7 +21,7 @@ public class TableInfoCache {
 
     /**
      * 表信息缓存
-     * 弱引用，内存吃紧时 jvm会回收
+     * 弱引用，随时会被jvm回收
      */
     private static Map<Class<?>, SoftReference<TableInfo>> tableInfoMap = new ConcurrentHashMap<>(16);
 
@@ -53,7 +53,7 @@ public class TableInfoCache {
     }
 
 
-    private static SoftReference<SerializedLambda> getSerializedLambda(Serializable fn) {
+    private  SoftReference<SerializedLambda> getSerializedLambda(Serializable fn) {
         return Optional.ofNullable(serializedLambdaMap.get(fn.getClass()))
                 .orElseGet(() -> {
                     try {
@@ -75,7 +75,7 @@ public class TableInfoCache {
      * @param fn 可序列化的function
      * @return 列名
      */
-    public static <T, Object> String convertToFieldName(SFunction<T, Object> fn) {
+    public  <T, Object> String convertToFieldName(SFunction<T, Object> fn) {
         SerializedLambda lambda = getSerializedLambda(fn).get();
         if (lambda != null) {
             String methodName = lambda.getImplMethodName();
@@ -111,7 +111,7 @@ public class TableInfoCache {
         return name.replace('/', '.');
     }
 
-    public static Class<?> toClassConfident(String name) {
+    private Class<?> toClassConfident(String name) {
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
