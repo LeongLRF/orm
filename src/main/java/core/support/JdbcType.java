@@ -1,4 +1,4 @@
-package util;
+package core.support;
 
 /**
  * @author Leong
@@ -7,6 +7,5 @@ package util;
 public interface JdbcType {
 
     String UNDEFINE = "";
-    String DEFAULT_PK = "long";
     String JSON = "JSON";
 }

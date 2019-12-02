@@ -4,7 +4,7 @@ import annotation.Column;
 import annotation.Id;
 import annotation.Table;
 import lombok.Data;
-import util.JdbcType;
+import core.support.JdbcType;
 
 @Data
 @Table(value = "user",cache = true,expireTime = 600)

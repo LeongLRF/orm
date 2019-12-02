@@ -1,6 +1,6 @@
 package annotation;
 
-import util.JdbcType;
+import core.support.JdbcType;
 
 import java.lang.annotation.*;
 /**

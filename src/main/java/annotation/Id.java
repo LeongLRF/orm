@@ -1,7 +1,7 @@
 package annotation;
 
-import util.IdType;
-import util.JdbcType;
+import core.support.IdType;
+import core.support.JdbcType;
 
 import java.lang.annotation.*;
 /**

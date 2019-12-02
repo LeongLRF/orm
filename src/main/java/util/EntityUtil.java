@@ -24,8 +24,9 @@ import java.util.stream.Stream;
 public class EntityUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(EntityUtil.class);
+
     public static <T> TableInfo getTableInfo(Class<T> cls) {
-        if (TableInfoCache.get(cls)!=null){
+        if (TableInfoCache.get(cls) != null) {
             logger.info("get table info from cache");
             return TableInfoCache.get(cls);
         }
@@ -56,7 +57,7 @@ public class EntityUtil {
             }
         });
         info.setColumns(columnInfos);
-        TableInfoCache.set(cls,info);
+        TableInfoCache.set(cls, info);
         return info;
     }
 
