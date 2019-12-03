@@ -29,6 +29,15 @@ public interface ILambdaQuery<T> {
     ILambdaQuery<T> in(SFunction<T, Object> column, List<Object> values);
 
     /**
+     * between查询 例如 select * from table where xxx between xxx and xxx
+     * @param column 字段
+     * @param value 参数1
+     * @param value2 参数2
+     * @return ILambdaQuery
+     */
+    ILambdaQuery<T> between(SFunction<T,Object> column,Object value,Object value2);
+
+    /**
      * 启动查询
      * @return 查询结果
      */

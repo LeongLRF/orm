@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.EntityUtil;
 import util.Model;
-import util.StringPool;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
@@ -18,7 +17,6 @@ import java.sql.*;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -297,14 +295,11 @@ public class DbConnection implements IDbConnection {
     }
 
     private Object connectionOp(BiFunction<Connection, PreparedStatement, Object> action) {
-        long start = System.currentTimeMillis();
         try (Connection connection1 = con();
              PreparedStatement preparedStatement = null) {
             return action.apply(connection1, preparedStatement);
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
         }
         return null;
     }

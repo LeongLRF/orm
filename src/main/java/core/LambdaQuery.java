@@ -55,6 +55,16 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     }
 
     @Override
+    public ILambdaQuery<T> between(SFunction<T, Object> column, Object value, Object value2) {
+        IStatement statement = new Statement();
+        statement.setSql(TableInfoCache.convertToFieldName(column)+ " BETWEEN ? AND ?");
+        statement.getParams().add(value);
+        statement.getParams().add(value2);
+        wheres.add(statement);
+        return this;
+    }
+
+    @Override
     public List<T> toList() {
         return db.genExecute(makeSql());
     }
