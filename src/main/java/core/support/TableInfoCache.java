@@ -37,7 +37,7 @@ public class TableInfoCache {
      * @param cls 实体类型
      * @return 表信息
      */
-    public TableInfo get(Class<?> cls) {
+    public synchronized TableInfo get(Class<?> cls) {
         return Optional.ofNullable(tableInfoMap.get(cls)).map(SoftReference::get).orElse(null);
     }
 
@@ -47,13 +47,16 @@ public class TableInfoCache {
      * @param cls       实体类型
      * @param tableInfo 表信息
      */
-    public void set(Class<?> cls, TableInfo tableInfo) {
+    public synchronized void set(Class<?> cls, TableInfo tableInfo) {
         SoftReference<TableInfo> softReference = new SoftReference<>(tableInfo);
         tableInfoMap.put(cls, softReference);
     }
 
+    /**
+     * 根据function获取列名
+     */
 
-    private  SoftReference<SerializedLambda> getSerializedLambda(Serializable fn) {
+    private synchronized SoftReference<SerializedLambda> getSerializedLambda(Serializable fn) {
         return Optional.ofNullable(serializedLambdaMap.get(fn.getClass()))
                 .orElseGet(() -> {
                     try {
@@ -75,7 +78,7 @@ public class TableInfoCache {
      * @param fn 可序列化的function
      * @return 列名
      */
-    public  <T, Object> String convertToFieldName(SFunction<T, Object> fn) {
+    public <T, Object> String convertToFieldName(SFunction<T, Object> fn) {
         SerializedLambda lambda = getSerializedLambda(fn).get();
         if (lambda != null) {
             String methodName = lambda.getImplMethodName();

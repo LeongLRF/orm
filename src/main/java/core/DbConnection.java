@@ -90,7 +90,6 @@ public class DbConnection implements IDbConnection {
     @SuppressWarnings("all")
     @Override
     public <T> List<T> genExecute(P3<Class<?>, String, List<Object>> p3) {
-        long start = System.currentTimeMillis();
         return (List<T>) connectionOp((c, p) -> {
             try {
                 p = c.prepareStatement(p3._2());
@@ -107,15 +106,12 @@ public class DbConnection implements IDbConnection {
     }
 
     private int executeUpdate(IStatement statement) {
-        long start = System.currentTimeMillis();
         return (int) connectionOp((c, p) -> {
             try {
                 p = statement.createPreparedStatement(c, null);
                 return p.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-            } finally {
-                logger.info("Cost : " + (System.currentTimeMillis() - start) + "ms");
             }
             return 0;
         });
