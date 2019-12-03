@@ -17,7 +17,7 @@ public class User {
     @Column("name")
     String name;
 
-    @Column("trueName")
+    @Column("true_name")
     String trueName;
 
     @Column("age")

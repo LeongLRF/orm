@@ -20,7 +20,9 @@ public class Configuration {
 
     public boolean debug = false;
 
-    public int model = Model.DEFAULT_MODEL;
+    public boolean showResult = false;
+
+    public int model = Model.POOL_MODEL;
 
     public boolean enableCache = true;
 

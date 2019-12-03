@@ -27,6 +27,6 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-        db.form(User.class).lambdaQuery().between(User::getAge,50,52).toList();
+        db.form(User.class).select("true_name").toList();
     }
 }
