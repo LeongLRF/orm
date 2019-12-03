@@ -1,4 +1,4 @@
-package core;
+package core.inerface;
 
 import config.Configuration;
 import core.inerface.IDbConnection;

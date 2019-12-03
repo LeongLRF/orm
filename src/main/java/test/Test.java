@@ -30,7 +30,7 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-        db.form(User.class).lambdaQuery().whereEq(User::getAge,50);
+        db.form(User.class).where("age = ? and name = ?",50,"Leong").one();
 
     }
 }

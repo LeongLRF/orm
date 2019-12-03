@@ -1,6 +1,7 @@
 package core;
 
 import config.Configuration;
+import core.inerface.DbFactory;
 import core.inerface.IDbConnection;
 
 import java.sql.SQLException;

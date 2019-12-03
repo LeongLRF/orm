@@ -47,7 +47,11 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
 
     @Override
     public ILambdaQuery<T> in(SFunction<T, Object> column, List<Object> values) {
-        return null;
+        IStatement statement =new Statement();
+        statement.setSql(TableInfoCache.convertToFieldName(column)+ " in " + DbConnection.createParameterPlaceHolder(values.size()));
+        statement.getParams().addAll(values);
+        wheres.add(statement);
+        return this;
     }
 
     @Override
@@ -55,7 +59,7 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
         return db.genExecute(makeSql());
     }
 
-    P3<Class<?>, String, List<Object>> makeSql() {
+    private P3<Class<?>, String, List<Object>> makeSql() {
         if (!wheres.isEmpty()) {
             freshSql();
             this.selectSql = selectSql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(","));
@@ -64,8 +68,4 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
         return P.p(cls, this.selectSql, this.prams);
     }
 
-    @Override
-    public T one() {
-        return null;
-    }
 }
