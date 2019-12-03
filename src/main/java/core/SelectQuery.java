@@ -122,7 +122,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public T one() {
-        List<T> list = (List<T>) toList();
+        List<T> list = toList();
         if (list.isEmpty()) {
             return null;
         }

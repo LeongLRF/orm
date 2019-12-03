@@ -121,6 +121,7 @@ public interface IDbConnection {
      * 根据主键删除
      * @param cls 删除实体类型
      * @param id 主键
+     * @return 是否删除成功 0 失败 1 成功
      */
     <T> int deleteById(Class<T> cls ,Serializable id);
 
@@ -133,6 +134,7 @@ public interface IDbConnection {
 
     /**
      * 批量删除
+     * @param cls 实体类型
      * @param ids 主键
      * @return 删除记录数量
      */

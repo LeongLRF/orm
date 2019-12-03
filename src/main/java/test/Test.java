@@ -3,15 +3,12 @@ package test;
 
 import config.Configuration;
 import core.CachedDbConnection;
-import core.DbConnection;
 import core.inerface.IDbConnection;
 import redis.clients.jedis.JedisPool;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
