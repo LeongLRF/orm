@@ -7,10 +7,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
 /**
  * @author Leong
  * RestFul API
  */
+@SuppressWarnings("all")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Result<T> {

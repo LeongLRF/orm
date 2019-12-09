@@ -1,4 +1,5 @@
 package core;
+
 import lombok.Data;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class TableInfo {
     /**
      * 字段
      */
-    private Map<String,ColumnInfo> columns;
+    private Map<String, ColumnInfo> columns;
 
     /**
      * 主键
@@ -47,7 +48,7 @@ public class TableInfo {
      */
     private int expireTime;
 
-    List<String> columns(){
+    List<String> columns() {
         return columns.values().stream().map(ColumnInfo::getName).collect(Collectors.toList());
     }
 

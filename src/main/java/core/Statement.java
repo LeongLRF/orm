@@ -32,7 +32,7 @@ public class Statement implements IStatement {
 
     boolean auto;
 
-    public Statement(String sql, Map<String,Object> params, boolean auto) {
+    public Statement(String sql, Map<String, Object> params, boolean auto) {
         this.sql = sql;
         this.params = new ArrayList<>(params.values());
         this.auto = auto;
@@ -53,7 +53,7 @@ public class Statement implements IStatement {
     public static Statement createInsertStatement(Object entity) {
         Class<?> cls = entity.getClass();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
-        Map<String,Object> values = EntityUtil.getValues(entity);
+        Map<String, Object> values = EntityUtil.getValues(entity);
         String sql = StringPool.INSERT +
                 StringPool.SPACE +
                 tableInfo.getTableName() +
@@ -69,32 +69,32 @@ public class Statement implements IStatement {
     static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates, Object id) {
         T entity = DbConnection.createEntity(cls);
         updates.accept(entity);
-        return createUpdateStatement(entity,id);
+        return createUpdateStatement(entity, id);
     }
 
-    static <T> Statement createUpdateStatement(T entity, Object id){
+    static <T> Statement createUpdateStatement(T entity, Object id) {
         Class<T> cls = (Class<T>) entity.getClass();
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
-        P2<String,List<Object>> setsAndObj = getSets(entity);
+        P2<String, List<Object>> setsAndObj = getSets(entity);
         List<Object> objects = setsAndObj._2();
         objects.add(id);
         String wheres = tableInfo.getPrimaryKey().getName() + " = ?";
-        return createUpdateStatement(tableInfo.getTableName(),setsAndObj._1(),objects,wheres);
+        return createUpdateStatement(tableInfo.getTableName(), setsAndObj._1(), objects, wheres);
     }
 
-    static <T> P2<String,List<Object>> getSets(T entity){
-        Map<String,Object> values = EntityUtil.getValues(entity);
+    static <T> P2<String, List<Object>> getSets(T entity) {
+        Map<String, Object> values = EntityUtil.getValues(entity);
         List<Object> objects = new ArrayList<>();
-        String sets = values.entrySet().stream().filter(it -> it.getValue()!=null).map(it -> {
+        String sets = values.entrySet().stream().filter(it -> it.getValue() != null).map(it -> {
             objects.add(it.getValue());
             return it.getKey() + " = ?";
         }).collect(Collectors.joining(","));
-        return P.p(sets,objects);
+        return P.p(sets, objects);
     }
 
-    static Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres){
+    static Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres) {
         Statement statement = new Statement();
-        if (StringUtils.isNullOrEmpty(wheres)){
+        if (StringUtils.isNullOrEmpty(wheres)) {
             throw new RuntimeException("can not execute update without wheres !");
         }
         statement.sql = "UPDATE " + tableName + " SET " + sets + " WHERE " + wheres;
@@ -103,17 +103,17 @@ public class Statement implements IStatement {
     }
 
     @Override
-    public PreparedStatement createPreparedStatement(Connection connection,Integer flag){
+    public PreparedStatement createPreparedStatement(Connection connection, Integer flag) {
         PreparedStatement preparedStatement;
         try {
-            if (flag!=null) {
-                preparedStatement = connection.prepareStatement(sql,flag);
-            }else {
+            if (flag != null) {
+                preparedStatement = connection.prepareStatement(sql, flag);
+            } else {
                 preparedStatement = connection.prepareStatement(sql);
             }
-            DbConnection.setParams(preparedStatement,params);
-            logger.info("Execute SQL : "+ sql);
-            logger.info("Params : "+ params.toString() );
+            DbConnection.setParams(preparedStatement, params);
+            logger.info("Execute SQL : " + sql);
+            logger.info("Params : " + params.toString());
             return preparedStatement;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -121,12 +121,13 @@ public class Statement implements IStatement {
         return null;
     }
 
-    public static Statement createDeleteStatement(Class<?> cls,Serializable id) {
+    public static Statement createDeleteStatement(Class<?> cls, Serializable id) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         String sql = "DELETE FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " = ?";
         return new Statement(sql, Collections.singletonList(id));
     }
-    public static Statement createDeleteStatement(Class<?> cls,List<Object> id) {
+
+    public static Statement createDeleteStatement(Class<?> cls, List<Object> id) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         String sql = "DELETE FROM " + tableInfo.getTableName() + " WHERE " + tableInfo.getPrimaryKey().getName() + " in " + DbConnection.createParameterPlaceHolder(id.size());
         return new Statement(sql, id);
