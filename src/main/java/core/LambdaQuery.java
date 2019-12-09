@@ -25,7 +25,7 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     private List<IStatement> wheres = new ArrayList<>(16);
     private List<Object> prams = new ArrayList<>(16);
 
-    public LambdaQuery(Class<T> cls, IDbConnection db, TableInfo tableInfo) {
+    LambdaQuery(Class<T> cls, IDbConnection db, TableInfo tableInfo) {
         this.cls = cls;
         this.db = db;
         this.tableInfo = tableInfo;
@@ -43,6 +43,11 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
         statement.getParams().add(value);
         wheres.add(statement);
         return this;
+    }
+
+    @Override
+    public ILambdaQuery<T> where(String sql, Object... values) {
+        return null;
     }
 
     @Override
