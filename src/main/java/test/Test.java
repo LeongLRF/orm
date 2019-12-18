@@ -27,6 +27,6 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-        db.form(User.class).select("true_name").toList();
+        System.out.println(db.form(User.class).avg("age"));
     }
 }

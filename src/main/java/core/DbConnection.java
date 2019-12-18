@@ -228,13 +228,27 @@ public class DbConnection implements IDbConnection {
         return executeUpdate(statement);
     }
 
+    @Override
+    public Object normalQuery(String sql, Object... values) {
+        return connectionOp((c, p) -> {
+            try {
+                p = c.prepareStatement(sql);
+                ResultSet resultSet =  p.executeQuery();
+                if (resultSet.next()){
+                    return resultSet.getLong(1);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
     private static P3<Class<?>, String, List<Object>> makeSql(IStatement statement, Class<?> cls) {
         String sql = statement.getSql();
         List<Object> params = statement.getParams();
         return P.p(cls, sql, params);
     }
-
-
 
 
     static String createParameterPlaceHolder(int num) {

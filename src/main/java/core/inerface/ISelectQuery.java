@@ -1,6 +1,7 @@
 package core.inerface;
 
 import core.TableInfo;
+import core.support.Page;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -189,12 +190,12 @@ public interface ISelectQuery<T> {
     /**
      * 模糊查询 例如：select * from table where xxx like '%xxx%'
      *
-     * @param column 查询字段
-     * @param value  查询参数
+     * @param column   查询字段
+     * @param value    查询参数
      * @param position %的位置 0 两边都有 1 左边有 2 右边有
      * @return this
      */
-    ISelectQuery<T> genLike(String column, Object value,int position);
+    ISelectQuery<T> genLike(String column, Object value, int position);
 
     /**
      * 左边模糊查询 例如：select * from table where xxx like '%xxx'
@@ -203,8 +204,8 @@ public interface ISelectQuery<T> {
      * @param value  查询参数
      * @return this
      */
-    default  ISelectQuery<T> likeLeft(String column, Object value){
-        return genLike(column,value,1);
+    default ISelectQuery<T> likeLeft(String column, Object value) {
+        return genLike(column, value, 1);
     }
 
     /**
@@ -214,9 +215,10 @@ public interface ISelectQuery<T> {
      * @param value  查询参数
      * @return this
      */
-    default ISelectQuery<T> like(String column,Object value){
-        return genLike(column,value,0);
+    default ISelectQuery<T> like(String column, Object value) {
+        return genLike(column, value, 0);
     }
+
     /**
      * 右边模糊查询 例如：select * from table where xxx like 'xxx%'
      *
@@ -224,9 +226,10 @@ public interface ISelectQuery<T> {
      * @param value  查询参数
      * @return this
      */
-    default ISelectQuery<T> likeRight(String column,Object value){
-        return genLike(column,value,2);
+    default ISelectQuery<T> likeRight(String column, Object value) {
+        return genLike(column, value, 2);
     }
+
     /**
      * 条件模糊查询 例如：select * from table where xxx like '%xxx'
      *
@@ -241,5 +244,35 @@ public interface ISelectQuery<T> {
         return this;
     }
 
+    /**
+     * 动态查询
+     *
+     * @param filter 过滤器
+     * @return this
+     */
     ISelectQuery<T> apply(IFilter<T> filter);
+
+    /**
+     * limit 查询
+     */
+    ISelectQuery<T> limit(int form, int to);
+
+    /**
+     * 分页
+     *
+     * @param page     第几页
+     * @param pageSize 页大小
+     * @return Page
+     * @see Page
+     */
+    Page<T> page(int page, int pageSize);
+
+    /**
+     * AVG函数 例如：select avg(xxx) from table where xxx
+     *
+     * @param column 字段
+     * @return 平均值
+     */
+    long avg(String column);
+
 }

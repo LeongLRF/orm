@@ -9,6 +9,7 @@ import fj.P;
 import fj.P3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,13 +48,17 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
 
     @Override
     public ILambdaQuery<T> where(String sql, Object... values) {
-        return null;
+        IStatement statement = new Statement();
+        statement.setSql(sql);
+        statement.setParams(Arrays.asList(values));
+        wheres.add(statement);
+        return this;
     }
 
     @Override
     public ILambdaQuery<T> in(SFunction<T, Object> column, List<Object> values) {
-        IStatement statement =new Statement();
-        statement.setSql(TableInfoCache.convertToFieldName(column)+ " in " + DbConnection.createParameterPlaceHolder(values.size()));
+        IStatement statement = new Statement();
+        statement.setSql(TableInfoCache.convertToFieldName(column) + " in " + DbConnection.createParameterPlaceHolder(values.size()));
         statement.getParams().addAll(values);
         wheres.add(statement);
         return this;
@@ -62,7 +67,7 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     @Override
     public ILambdaQuery<T> between(SFunction<T, Object> column, Object value, Object value2) {
         IStatement statement = new Statement();
-        statement.setSql(TableInfoCache.convertToFieldName(column)+ " BETWEEN ? AND ?");
+        statement.setSql(TableInfoCache.convertToFieldName(column) + " BETWEEN ? AND ?");
         statement.getParams().add(value);
         statement.getParams().add(value2);
         wheres.add(statement);

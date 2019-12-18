@@ -2,6 +2,7 @@ package core;
 
 import com.mysql.cj.util.StringUtils;
 import core.inerface.*;
+import core.support.Page;
 import fj.P;
 import fj.P2;
 import fj.P3;
@@ -36,6 +37,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     private List<IStatement> wheres = new ArrayList<>();
     private String selects = "*";
     private String orderBy = "";
+    private String limit = "";
 
 
     SelectQuery(IDbConnection connection, Class<T> cls) {
@@ -109,6 +111,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return connection.genExecute(this.makeSql());
     }
 
+
     P3<Class<?>, String, List<Object>> makeSql() {
         this.makeSql(this.getWheres());
         String sql = this.getSql();
@@ -141,11 +144,12 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     public void makeSql(List<IStatement> statements) {
         refreshSql();
         if (!statements.isEmpty()) {
-            sql = sql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND ")) + orderBy;
+            sql = sql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(" AND "));
         }
         if (!statements.isEmpty()) {
             params.addAll(statements.stream().flatMap(it -> it.getParams().stream()).collect(Collectors.toList()));
         }
+        sql = sql + orderBy + limit;
     }
 
     @Override
@@ -194,4 +198,26 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     public ISelectQuery<T> apply(IFilter<T> filter) {
         return filter.apply(this);
     }
+
+    @Override
+    public ISelectQuery<T> limit(int form, int to) {
+        this.limit = " limit " + form + " , " + to;
+        return this;
+    }
+
+    @Override
+    public Page<T> page(int page, int pageSize) {
+        long total = toList().size();
+        List<T> data = limit(page * pageSize, pageSize).toList();
+        return new Page<>(total,page,pageSize,data);
+    }
+
+    @Override
+    public long avg(String column) {
+        selects = " AVG(" + column + ") ";
+        P3<Class<?>,String,List<Object>> p3 = makeSql();
+        System.out.println(p3._2());
+        return (long) connection.normalQuery(p3._2(),p3._3());
+    }
+
 }
