@@ -26,7 +26,7 @@ public class Test {
         Configuration config = new Configuration() {{
             debug = true;
         }};
-        IDbConnection db = new CachedDbConnection(connection,config,jedisPool);
-        System.out.println(db.form(User.class).avg("age"));
+        IDbConnection db = new CachedDbConnection(connection, config, jedisPool);
+        System.out.println(db.form(User.class).whereEq("name","123456").avg("age"));
     }
 }

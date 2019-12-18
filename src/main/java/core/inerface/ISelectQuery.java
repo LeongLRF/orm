@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 /**
  * @author Leong
  */
-public interface ISelectQuery<T> {
+public interface ISelectQuery<T> extends Fun {
 
     /**
      * 数据库连接
@@ -267,12 +267,5 @@ public interface ISelectQuery<T> {
      */
     Page<T> page(int page, int pageSize);
 
-    /**
-     * AVG函数 例如：select avg(xxx) from table where xxx
-     *
-     * @param column 字段
-     * @return 平均值
-     */
-    long avg(String column);
 
 }

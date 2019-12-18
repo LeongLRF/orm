@@ -209,15 +209,30 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     public Page<T> page(int page, int pageSize) {
         long total = toList().size();
         List<T> data = limit(page * pageSize, pageSize).toList();
-        return new Page<>(total,page,pageSize,data);
+        return new Page<>(total, page, pageSize, data);
     }
 
     @Override
-    public long avg(String column) {
+    public Object avg(String column) {
         selects = " AVG(" + column + ") ";
-        P3<Class<?>,String,List<Object>> p3 = makeSql();
+        P3<Class<?>, String, List<Object>> p3 = makeSql();
         System.out.println(p3._2());
-        return (long) connection.normalQuery(p3._2(),p3._3());
+        return  connection.normalQuery(p3._2(), p3._3().toArray());
+    }
+
+    @Override
+    public Object max(String column) {
+        selects = " MAX(" + column + ") ";
+        P3<Class<?>, String, List<Object>> p3 = makeSql();
+        return connection.normalQuery(p3._2(), p3._3().toArray());
+    }
+
+    @Override
+    public Object min(String column) {
+        selects = " MIN(" + column + ") ";
+        P3<Class<?>, String, List<Object>> p3 = makeSql();
+        System.out.println(p3._2());
+        return connection.normalQuery(p3._2(), p3._3().toArray());
     }
 
 }

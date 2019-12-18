@@ -233,9 +233,10 @@ public class DbConnection implements IDbConnection {
         return connectionOp((c, p) -> {
             try {
                 p = c.prepareStatement(sql);
-                ResultSet resultSet =  p.executeQuery();
-                if (resultSet.next()){
-                    return resultSet.getLong(1);
+                setParams(p, Arrays.stream(values).collect(Collectors.toList()));
+                ResultSet resultSet = p.executeQuery();
+                if (resultSet.next()) {
+                    return resultSet.getObject(1);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -256,7 +257,7 @@ public class DbConnection implements IDbConnection {
     }
 
     static void setParams(PreparedStatement statement, List<Object> values) {
-        if (values == null) {
+        if (values == null || values.isEmpty()) {
             return;
         }
         for (int i = 0; i < values.size(); i++) {
