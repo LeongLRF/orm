@@ -1,6 +1,7 @@
 package core.inerface;
 
 import core.support.SFunction;
+import core.support.TableInfoCache;
 
 import java.util.List;
 import java.util.function.Function;
@@ -9,7 +10,7 @@ import java.util.function.Function;
  * @author Leong
  * lambda表达式查询抽象
  */
-public interface ILambdaQuery<T> {
+public interface ILambdaQuery<T> extends Fun {
 
     /**
      * 等于 例如 select * from table where xxx = xxx
@@ -76,5 +77,9 @@ public interface ILambdaQuery<T> {
      */
     default int count() {
         return toList().size();
+    }
+
+    default Object sum(SFunction<T, Object> f) {
+        return sum(TableInfoCache.convertToFieldName(f));
     }
 }

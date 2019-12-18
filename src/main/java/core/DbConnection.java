@@ -318,11 +318,7 @@ public class DbConnection implements IDbConnection {
             throw new RuntimeException(e);
         }
     }
-
-    private boolean debugModel(Configuration configuration) {
-        return configuration != null && configuration.isDebug();
-    }
-
+    
     public static <T> T createEntity(Class<T> cls) {
         try {
             return cls.newInstance();

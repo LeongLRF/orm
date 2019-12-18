@@ -202,11 +202,12 @@ public interface ISelectQuery<T> extends Fun {
     List<T> toList();
 
     /**
-     * 查询结果（多个）
+     * 查询结果（用于select()方法）
      *
+     * @param cls 类型
      * @return 查询所得到的值
      */
-    <R>List<R> toList(Class<R> cls);
+    <R> List<R> toList(Class<R> cls);
 
     /**
      * 结果计数功能

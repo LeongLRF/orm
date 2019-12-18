@@ -9,6 +9,7 @@ import redis.clients.jedis.JedisPool;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
@@ -27,6 +28,6 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new CachedDbConnection(connection, config, jedisPool);
-        System.out.println(db.form(User.class).whereEq("name","123456").select("name").toList(String.class));
+        System.out.println(db.form(User.class).lambdaQuery().whereEq(User::getName,"123456").toList());
     }
 }
