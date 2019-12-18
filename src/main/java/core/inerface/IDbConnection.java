@@ -164,4 +164,22 @@ public interface IDbConnection {
      * @return 查询结果
      */
     Object normalQuery(String sql, Object... values);
+
+    /**
+     * 通用查询
+     *
+     * @param sql    查询语句
+     * @param values 参数
+     * @param cls    类型
+     * @return 查询结果
+     */
+    <R> List<R> normalQuery(String sql, Class<R> cls, Object... values);
+
+    /**
+     * 开启更新操作
+     *
+     * @return IUpdateQuery
+     */
+    <T> IUpdateQuery<T> update(Class<T> cls);
+
 }

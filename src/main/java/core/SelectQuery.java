@@ -111,6 +111,12 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         return connection.genExecute(this.makeSql());
     }
 
+    @Override
+    public <R> List<R> toList(Class<R> cls) {
+        P3<Class<?>, String, List<Object>> p3 = makeSql();
+        return connection.normalQuery(p3._2(), cls, p3._3().toArray());
+    }
+
 
     P3<Class<?>, String, List<Object>> makeSql() {
         this.makeSql(this.getWheres());
@@ -217,7 +223,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         selects = " AVG(" + column + ") ";
         P3<Class<?>, String, List<Object>> p3 = makeSql();
         System.out.println(p3._2());
-        return  connection.normalQuery(p3._2(), p3._3().toArray());
+        return connection.normalQuery(p3._2(), p3._3().toArray());
     }
 
     @Override
@@ -230,6 +236,14 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     @Override
     public Object min(String column) {
         selects = " MIN(" + column + ") ";
+        P3<Class<?>, String, List<Object>> p3 = makeSql();
+        System.out.println(p3._2());
+        return connection.normalQuery(p3._2(), p3._3().toArray());
+    }
+
+    @Override
+    public Object sum(String column) {
+        selects = " SUM(" + column + ") ";
         P3<Class<?>, String, List<Object>> p3 = makeSql();
         System.out.println(p3._2());
         return connection.normalQuery(p3._2(), p3._3().toArray());

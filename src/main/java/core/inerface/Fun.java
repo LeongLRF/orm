@@ -29,4 +29,12 @@ public interface Fun {
      * @return 最小值
      */
     Object min(String column);
+
+    /**
+     * SUM函数 例如：select sum(xxx) from table where xxx
+     *
+     * @param column 字段
+     * @return 求和值
+     */
+    Object sum(String column);
 }

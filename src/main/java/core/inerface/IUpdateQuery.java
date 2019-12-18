@@ -1,5 +1,7 @@
 package core.inerface;
 
+import core.TableInfo;
+
 import java.util.List;
 
 /**
@@ -17,6 +19,8 @@ public interface IUpdateQuery<T> {
     List<IStatement> getWheres();
 
     Class<T> getCls();
+
+    TableInfo getTableInfo();
 
     IUpdateQuery<T> set(String column, Object newValue);
 

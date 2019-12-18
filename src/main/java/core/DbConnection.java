@@ -4,6 +4,7 @@ import config.Configuration;
 import core.inerface.IDbConnection;
 import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
+import core.inerface.IUpdateQuery;
 import fj.P;
 import fj.P3;
 import org.slf4j.Logger;
@@ -243,6 +244,32 @@ public class DbConnection implements IDbConnection {
             }
             return null;
         });
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> List<R> normalQuery(String sql, Class<R> cls, Object... values) {
+        return (List<R>) connectionOp((c, p) -> {
+            try {
+                p = c.prepareStatement(sql);
+                logger.info("Execute SQL : " + sql);
+                setParams(p, Arrays.stream(values).collect(Collectors.toList()));
+                ResultSet resultSet = p.executeQuery();
+                List<R> list = new ArrayList<>();
+                while (resultSet.next()) {
+                    list.add(resultSet.getObject(1, cls));
+                }
+                return list;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public <T> IUpdateQuery<T> update(Class<T> cls) {
+        return null;
     }
 
     private static P3<Class<?>, String, List<Object>> makeSql(IStatement statement, Class<?> cls) {

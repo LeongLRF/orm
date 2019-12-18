@@ -53,7 +53,30 @@ public interface ISelectQuery<T> extends Fun {
      */
     Class<T> getCls();
 
+    /**
+     * 自定义where查询
+     *
+     * @param column 字段 例如：xxx = ?（注意要加占位符'?'）
+     * @param values 参数
+     * @return ISelectQuery
+     */
     ISelectQuery<T> where(String column, Object... values);
+
+    /**
+     * 动态查询
+     * 自定义where查询
+     *
+     * @param column 字段 例如：xxx = ?（注意要加占位符'?'）
+     * @param values 参数
+     * @return ISelectQuery
+     */
+    default ISelectQuery<T> where(boolean condition, String column, Object... values) {
+        if (condition) {
+            return where(column, values);
+        } else {
+            return this;
+        }
+    }
 
     /**
      * IN字符串拼接 例如：SELECT * FROM table WHERE xxx IN (xxx,xxx)
@@ -64,6 +87,23 @@ public interface ISelectQuery<T> extends Fun {
      * @see core.SelectQuery
      */
     ISelectQuery<T> in(String column, Collection<?> ids);
+
+    /**
+     * 动态查询
+     * IN字符串拼接 例如：SELECT * FROM table WHERE xxx IN (xxx,xxx)
+     *
+     * @param column 想要查询的字段（要跟数据库上的字段一致）
+     * @param ids    IN里面的内容
+     * @return SelectQuery
+     * @see core.SelectQuery
+     */
+    default ISelectQuery<T> in(boolean condition, String column, Collection<?> ids) {
+        if (condition) {
+            return in(column, ids);
+        } else {
+            return this;
+        }
+    }
 
     /**
      * WHERE字符串拍拼接 例如：SELECT * FROM table WHERE xxx = xxx
@@ -77,6 +117,8 @@ public interface ISelectQuery<T> extends Fun {
 
     /**
      * 启动lambda查询
+     *
+     * @return ILambdaQuery
      */
     ILambdaQuery<T> lambdaQuery();
 
@@ -105,6 +147,24 @@ public interface ISelectQuery<T> extends Fun {
      * @see core.SelectQuery
      */
     ISelectQuery<T> inSql(String column, String sql, Object... values);
+
+    /**
+     * 动态查询
+     * IN子查询 例如：SELECT * FROM table WHERE id IN (SELECT xxx FROM table...)
+     *
+     * @param column 查询字段
+     * @param sql    子查询
+     * @param values 子查询参数有
+     * @return SelectQuery
+     * @see core.SelectQuery
+     */
+    default ISelectQuery<T> inSql(boolean condition, String column, String sql, Object... values) {
+        if (condition) {
+            return inSql(column, sql, values);
+        } else {
+            return this;
+        }
+    }
 
     /**
      * 查询具体字段 例如：SELECT name FROM table ...
@@ -140,6 +200,13 @@ public interface ISelectQuery<T> extends Fun {
      * @return 查询所得到的值
      */
     List<T> toList();
+
+    /**
+     * 查询结果（多个）
+     *
+     * @return 查询所得到的值
+     */
+    <R>List<R> toList(Class<R> cls);
 
     /**
      * 结果计数功能

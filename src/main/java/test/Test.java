@@ -27,6 +27,6 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new CachedDbConnection(connection, config, jedisPool);
-        System.out.println(db.form(User.class).whereEq("name","123456").avg("age"));
+        System.out.println(db.form(User.class).whereEq("name","123456").select("name").toList(String.class));
     }
 }
