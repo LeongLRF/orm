@@ -10,7 +10,6 @@ import redis.clients.jedis.JedisPool;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
@@ -30,7 +29,7 @@ public class Test {
         }};
         IDbConnection db = new DbConnection(connection, config);
         long start = System.currentTimeMillis();
-        db.deleteById(User.class,11);
+        db.form(User.class).toList();
         System.out.println(System.currentTimeMillis() - start + "ms");
     }
 }

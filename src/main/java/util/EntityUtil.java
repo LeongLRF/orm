@@ -27,7 +27,6 @@ public class EntityUtil {
 
     public static <T> TableInfo getTableInfo(Class<T> cls) {
         if (TableInfoCache.get(cls) != null) {
-            logger.info("get table info from cache");
             return TableInfoCache.get(cls);
         }
         Field[] fields = cls.getDeclaredFields();

@@ -68,6 +68,10 @@ public class DbConnection implements IDbConnection {
         return new SelectQuery<>(this, cls);
     }
 
+    @Override
+    public <T> IUpdateQuery<T> update(Class<T> cls) {
+        return new UpdateQuery<>(this, cls);
+    }
 
     private Object execute(IStatement statement, boolean isAuto) {
         return connectionOp((c, p) -> {
@@ -274,10 +278,6 @@ public class DbConnection implements IDbConnection {
         });
     }
 
-    @Override
-    public <T> IUpdateQuery<T> update(Class<T> cls) {
-        return new UpdateQuery<>(this, cls);
-    }
 
     private static P3<Class<?>, String, List<Object>> makeSql(IStatement statement, Class<?> cls) {
         String sql = statement.getSql();
