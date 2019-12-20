@@ -3,6 +3,7 @@ package test;
 
 import config.Configuration;
 import core.CachedDbConnection;
+import core.DbConnection;
 import core.inerface.IDbConnection;
 import redis.clients.jedis.JedisPool;
 
@@ -27,7 +28,9 @@ public class Test {
         Configuration config = new Configuration() {{
             debug = true;
         }};
-        IDbConnection db = new CachedDbConnection(connection, config, jedisPool);
-        System.out.println(db.form(User.class).lambdaQuery().whereEq(User::getName,"123456").toList());
+        IDbConnection db = new DbConnection(connection, config);
+        long start = System.currentTimeMillis();
+        db.deleteById(User.class,11);
+        System.out.println(System.currentTimeMillis() - start + "ms");
     }
 }

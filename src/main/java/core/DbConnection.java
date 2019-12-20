@@ -107,15 +107,7 @@ public class DbConnection implements IDbConnection {
     }
 
     private int executeUpdate(IStatement statement) {
-        return (int) connectionOp((c, p) -> {
-            try {
-                p = statement.createPreparedStatement(c, null);
-                return p.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return 0;
-        });
+        return (int) executeUpdate(statement.getSql(), statement.getParams().toArray());
 
     }
 
@@ -268,8 +260,23 @@ public class DbConnection implements IDbConnection {
     }
 
     @Override
+    public Object executeUpdate(String sql, Object... values) {
+        return connectionOp((c, p) -> {
+            try {
+                p = c.prepareStatement(sql);
+                setParams(p, Arrays.stream(values).collect(Collectors.toList()));
+                logger.info("Execute Sql : " + sql);
+                return p.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
+    @Override
     public <T> IUpdateQuery<T> update(Class<T> cls) {
-        return null;
+        return new UpdateQuery<>(this, cls);
     }
 
     private static P3<Class<?>, String, List<Object>> makeSql(IStatement statement, Class<?> cls) {
@@ -318,7 +325,7 @@ public class DbConnection implements IDbConnection {
             throw new RuntimeException(e);
         }
     }
-    
+
     public static <T> T createEntity(Class<T> cls) {
         try {
             return cls.newInstance();

@@ -16,6 +16,8 @@ public interface IUpdateQuery<T> {
 
     List<Object> getParams();
 
+    List<IStatement> getSet();
+
     List<IStatement> getWheres();
 
     Class<T> getCls();
@@ -27,4 +29,6 @@ public interface IUpdateQuery<T> {
     IUpdateQuery<T> where(String column, Object value);
 
     int execute();
+
+    void makeSql();
 }

@@ -1,6 +1,7 @@
 package core.inerface;
 
 import annotation.Id;
+import core.TableInfo;
 import fj.P3;
 
 import javax.sql.DataSource;
@@ -174,6 +175,8 @@ public interface IDbConnection {
      * @return 查询结果
      */
     <R> List<R> normalQuery(String sql, Class<R> cls, Object... values);
+
+    Object executeUpdate(String sql,Object...values);
 
     /**
      * 开启更新操作

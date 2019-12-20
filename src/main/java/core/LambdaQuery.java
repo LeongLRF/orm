@@ -92,7 +92,6 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     public Object avg(String column) {
         selects = " AVG(" + column + ") ";
         P3<Class<?>, String, List<Object>> p3 = makeSql();
-        System.out.println(p3._2());
         return db.normalQuery(p3._2(), p3._3().toArray());
     }
 
@@ -107,7 +106,6 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     public Object min(String column) {
         selects = " MIN(" + column + ") ";
         P3<Class<?>, String, List<Object>> p3 = makeSql();
-        System.out.println(p3._2());
         return db.normalQuery(p3._2(), p3._3().toArray());
     }
 
@@ -115,7 +113,6 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     public Object sum(String column) {
         selects = " SUM(" + column + ") ";
         P3<Class<?>, String, List<Object>> p3 = makeSql();
-        System.out.println(p3._2());
         return db.normalQuery(p3._2(), p3._3().toArray());
     }
 }
