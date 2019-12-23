@@ -29,7 +29,7 @@ public class Test {
         }};
         IDbConnection db = new DbConnection(connection, config);
         long start = System.currentTimeMillis();
-        db.form(User.class).toList();
+        System.out.println(db.form(User.class).avg("age"));
         System.out.println(System.currentTimeMillis() - start + "ms");
     }
 }

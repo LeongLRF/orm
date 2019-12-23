@@ -29,6 +29,8 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    protected final SelectQuery<T> typeThis = this;
+
     private IDbConnection connection;
     private String sql;
     private Class<T> cls;
@@ -53,7 +55,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     }
 
     private void refreshSql() {
-        this.sql = "SELECT " + getSelects() + " FROM " + tableInfo.getTableName();
+        typeThis.sql = "SELECT " + getSelects() + " FROM " + tableInfo.getTableName();
     }
 
     @Override
@@ -62,7 +64,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         statement.setSql(sql);
         statement.getParams().addAll(Arrays.asList(value));
         this.wheres.add(statement);
-        return this;
+        return typeThis;
     }
 
     @Override
@@ -71,9 +73,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
             IStatement statement = new Statement();
             statement.setSql(column + " in " + DbConnection.createParameterPlaceHolder(values.size()));
             statement.getParams().addAll(values);
-            this.wheres.add(statement);
+            typeThis.wheres.add(statement);
         }
-        return this;
+        return typeThis;
     }
 
     @Override
@@ -82,7 +84,7 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         statement.setSql(column + StringPool.SPACE + StringPool.EQUALS + StringPool.SPACE + StringPool.QUESTION_MARK);
         statement.getParams().add(value);
         wheres.add(statement);
-        return this;
+        return typeThis;
     }
 
     @Override
@@ -92,8 +94,8 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
     @Override
     public ISelectQuery<T> select(String column) {
-        this.selects = column;
-        return this;
+        typeThis.selects = column;
+        return typeThis;
     }
 
     @Override
@@ -103,12 +105,12 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         statement.getParams().add(value);
         statement.getParams().add(value2);
         wheres.add(statement);
-        return this;
+        return typeThis;
     }
 
     @Override
     public List<T> toList() {
-        return connection.genExecute(this.makeSql());
+        return connection.genExecute(typeThis.makeSql());
     }
 
     @Override
@@ -119,12 +121,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
 
 
     P3<Class<?>, String, List<Object>> makeSql() {
-        this.makeSql(this.getWheres());
-        String sql = this.getSql();
-        List<Object> params = this.getParams();
-        if (!selects.equals("*")) {
-            return P.p(Object.class, sql, params);
-        }
+        typeThis.makeSql(typeThis.getWheres());
+        String sql = typeThis.getSql();
+        List<Object> params = typeThis.getParams();
         return P.p(cls, sql, params);
     }
 
@@ -141,9 +140,9 @@ public class SelectQuery<T> implements ISelectQuery<T> {
     @Override
     public ISelectQuery<T> orderBy(String orderBy) {
         if (!StringUtils.isNullOrEmpty(orderBy)) {
-            this.orderBy = " order by " + orderBy;
+            typeThis.orderBy = " order by " + orderBy;
         }
-        return this;
+        return typeThis;
     }
 
     @Override
@@ -197,18 +196,18 @@ public class SelectQuery<T> implements ISelectQuery<T> {
         }
         statement.setSql(column + " like " + like);
         wheres.add(statement);
-        return this;
+        return typeThis;
     }
 
     @Override
     public ISelectQuery<T> apply(IFilter<T> filter) {
-        return filter.apply(this);
+        return filter.apply(typeThis);
     }
 
     @Override
     public ISelectQuery<T> limit(int form, int to) {
-        this.limit = " limit " + form + " , " + to;
-        return this;
+        typeThis.limit = " limit " + form + " , " + to;
+        return typeThis;
     }
 
     @Override
