@@ -21,6 +21,8 @@ public class Page<T> {
 
     /**
      * 可以通过mapList关联其他表
+     *
+     * @param action 关联操作
      */
     public Page<T> mapList(Consumer<List<T>> action) {
         action.accept(data);

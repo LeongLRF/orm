@@ -6,7 +6,7 @@ import util.EntityUtil;
 @UtilityClass
 public class ExceptionHelper {
 
-    public static void throwExpection(boolean test,String message){
+    public static void throwException(boolean test, String message){
         if (!test){
             throw new SimpleOrmExpection(message);
         }

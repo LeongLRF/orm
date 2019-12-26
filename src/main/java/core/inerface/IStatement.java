@@ -15,6 +15,7 @@ public interface IStatement {
      * @return sql片段
      */
     String getSql();
+
     void setSql(String sql);
     /**
      * 获取sql片段参数

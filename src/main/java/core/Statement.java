@@ -2,6 +2,7 @@ package core;
 
 import com.mysql.cj.util.StringUtils;
 import core.inerface.IStatement;
+import exception.ExceptionHelper;
 import fj.P;
 import fj.P2;
 import lombok.Data;
@@ -43,10 +44,6 @@ public class Statement implements IStatement {
         this.params = params;
     }
 
-    public Statement(String sql) {
-        this.sql = sql;
-    }
-
     public Statement() {
     }
 
@@ -69,11 +66,10 @@ public class Statement implements IStatement {
     static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates, Object id) {
         T entity = DbConnection.createEntity(cls);
         updates.accept(entity);
-        return createUpdateStatement(entity, id);
+        return createUpdateStatement(entity, id, cls);
     }
 
-    static <T> Statement createUpdateStatement(T entity, Object id) {
-        Class<T> cls = (Class<T>) entity.getClass();
+    static <T> Statement createUpdateStatement(T entity, Object id, Class<T> cls) {
         TableInfo tableInfo = EntityUtil.getTableInfo(cls);
         P2<String, List<Object>> setsAndObj = getSets(entity);
         List<Object> objects = setsAndObj._2();
@@ -94,9 +90,7 @@ public class Statement implements IStatement {
 
     static Statement createUpdateStatement(String tableName, String sets, List<Object> params, String wheres) {
         Statement statement = new Statement();
-        if (StringUtils.isNullOrEmpty(wheres)) {
-            throw new RuntimeException("can not execute update without wheres !");
-        }
+        ExceptionHelper.throwException(!StringUtils.isNullOrEmpty(wheres), "不能全表更新！你这个猪头");
         statement.sql = "UPDATE " + tableName + " SET " + sets + " WHERE " + wheres;
         statement.params = params;
         return statement;

@@ -1,6 +1,8 @@
 package core.support;
 
 import core.TableInfo;
+import exception.ExceptionHelper;
+import exception.SimpleOrmExpection;
 import lombok.experimental.UtilityClass;
 import util.EntityUtil;
 
@@ -17,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 表信息缓存与序列化lambda缓存
  */
 @UtilityClass
-public class TableInfoCache {
+public final class TableInfoCache {
 
     /**
      * 表信息缓存
@@ -54,8 +56,9 @@ public class TableInfoCache {
 
     /**
      * 根据function获取列名
+     *
+     * @param fn 函数
      */
-
     private synchronized SoftReference<SerializedLambda> getSerializedLambda(Serializable fn) {
         return Optional.ofNullable(serializedLambdaMap.get(fn.getClass()))
                 .orElseGet(() -> {
@@ -88,16 +91,12 @@ public class TableInfoCache {
             } else if (methodName.startsWith("is")) {
                 prefix = "is";
             }
-            if (prefix == null) {
-                throw new RuntimeException("请严格遵循javabean的写法");
-            }
+            ExceptionHelper.throwException(prefix != null, "请严格遵循javabean的写法");
             methodName = methodName.replace(prefix, "");
             methodName = methodName.substring(0, 1).toLowerCase() + methodName.substring(1);
             Class<?> cls = toClassConfident(normalName(lambda.getImplClass()));
             TableInfo tableInfo = EntityUtil.getTableInfo(cls);
-            if (tableInfo == null) {
-                throw new RuntimeException("没有找到相关信息");
-            }
+            ExceptionHelper.throwException(tableInfo != null, "没有找到相关信息");
             return tableInfo.getColumns().get(methodName).getName();
         }
         return null;
@@ -117,7 +116,7 @@ public class TableInfoCache {
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("找不到指定的class！请仅在明确确定会有 class 的时候，调用该方法", e);
+            throw new SimpleOrmExpection("找不到指定的class！请仅在明确确定会有 class 的时候，调用该方法");
         }
     }
 
