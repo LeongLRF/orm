@@ -147,7 +147,7 @@ public class DbConnection implements IDbConnection {
         }
         IStatement statement = Statement.createInsertStatement(entity);
         Object index = execute(statement, statement.isAuto());
-        if (statement.isAuto()){
+        if (statement.isAuto()) {
             EntityUtil.setId(entity, index);
         }
         long end = System.currentTimeMillis();
@@ -197,6 +197,9 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int update(T entity) {
         Object id = EntityUtil.getId(entity);
+        if (entity instanceof TimeStampEntity) {
+            ((TimeStampEntity) entity).setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        }
         IStatement statement = Statement.createUpdateStatement(entity, id);
         return executeUpdate(statement);
     }
@@ -341,6 +344,7 @@ public class DbConnection implements IDbConnection {
         return null;
     }
 
+    @SuppressWarnings("all")
     private Object connectionOp(BiFunction<Connection, PreparedStatement, Object> action) {
         try (Connection connection1 = con();
              PreparedStatement preparedStatement = null) {

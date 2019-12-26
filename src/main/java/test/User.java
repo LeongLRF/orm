@@ -19,6 +19,9 @@ public class User implements TimeStampEntity {
     @Column("inserted_at")
     Timestamp insertedAt;
 
+    @Column("updated_at")
+    Timestamp updatedAt;
+
     @Column("name")
     String name;
 
