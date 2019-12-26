@@ -14,7 +14,7 @@ import java.sql.SQLException;
 public class Test {
     public static void main(String[] args) {
         Connection connection = null;
-        JedisPool jedisPool = new JedisPool("localhost", 6379);
+        JedisPool jedisPool = new JedisPool("59.110.171.118", 6379);
         try {
             Class.forName("com.mysql.jdbc.Driver");
             String url = "jdbc:mysql://59.110.171.118:3306/test?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
@@ -28,8 +28,10 @@ public class Test {
             debug = true;
         }};
         IDbConnection db = new DbConnection(connection, config);
+        User user = new User();
+        user.setTrueName("fengfeng");
         long start = System.currentTimeMillis();
-        System.out.println(db.form(User.class).avg("age"));
+        System.out.println(db.insert(user));
         System.out.println(System.currentTimeMillis() - start + "ms");
     }
 }

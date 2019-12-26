@@ -5,6 +5,7 @@ import core.inerface.IDbConnection;
 import core.inerface.ISelectQuery;
 import core.inerface.IStatement;
 import core.inerface.IUpdateQuery;
+import core.support.TimeStampEntity;
 import fj.P;
 import fj.P3;
 import org.slf4j.Logger;
@@ -29,16 +30,16 @@ public class DbConnection implements IDbConnection {
 
     private final Logger logger = LoggerFactory.getLogger(DbConnection.class);
 
-    private Connection connection;
+    private Connection connection = null;
     private boolean onTransaction = false;
-    private DataSource dataSource;
+    private DataSource dataSource = null;
     private Configuration configuration;
 
 
     public DbConnection(Connection connection, Configuration configuration) {
         this.connection = connection;
         this.configuration = configuration;
-        logger.info("Init DbConnection with default model");
+        logger.info("Init DbConnection ");
     }
 
     public DbConnection(Configuration configuration) {
@@ -50,7 +51,7 @@ public class DbConnection implements IDbConnection {
         this.dataSource = dataSource;
         this.configuration = configuration;
         this.connection = dataSource.getConnection();
-        logger.info("Init DbConnection With Configuration");
+        logger.info("Init DbConnection ");
     }
 
     @Override
@@ -141,9 +142,14 @@ public class DbConnection implements IDbConnection {
     @Override
     public <T> int insert(T entity) {
         long start = System.currentTimeMillis();
+        if (entity instanceof TimeStampEntity) {
+            ((TimeStampEntity) entity).setInsertedAt(new Timestamp(System.currentTimeMillis()));
+        }
         IStatement statement = Statement.createInsertStatement(entity);
         Object index = execute(statement, statement.isAuto());
-        EntityUtil.setId(entity, index);
+        if (statement.isAuto()){
+            EntityUtil.setId(entity, index);
+        }
         long end = System.currentTimeMillis();
         logger.info("Cost : " + (end - start) + "ms");
         return Integer.parseInt(index.toString());

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * 基于redis的二级缓存
  * key为tableName:id
  */
-public class CachedDbConnection extends DbConnection {
+public final class CachedDbConnection extends DbConnection {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

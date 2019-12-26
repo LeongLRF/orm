@@ -40,7 +40,7 @@ public class EntityUtil {
         info.setTableName(table.value());
         info.setCache(table.cache());
         info.setExpireTime(table.expireTime());
-        Map<String, ColumnInfo> columnInfos = new HashMap<>(16);
+        Map<String, ColumnInfo> columnInfos = new LinkedHashMap<>(16);
         Arrays.stream(fields).forEach(it -> {
             if (it.isAnnotationPresent(Id.class)) {
                 Id primaryKey = it.getAnnotation(Id.class);
@@ -62,11 +62,11 @@ public class EntityUtil {
 
     public static <T> Map<String, Object> getValues(T entity) {
         Class<?> cls = entity.getClass();
-        if (cls.getAnnotation(Table.class) == null) {
+        while (cls.getAnnotation(Table.class) == null) {
             cls = cls.getSuperclass();
         }
         Field[] fields = cls.getDeclaredFields();
-        Map<String, Object> values = new HashMap<>();
+        Map<String, Object> values = new LinkedHashMap<>();
         for (Field field : fields) {
             if (field.isAnnotationPresent(Id.class)) {
                 Id id = field.getAnnotation(Id.class);
@@ -76,8 +76,7 @@ public class EntityUtil {
                     Method method;
                     try {
                         method = cls.getMethod(((Boolean.TYPE == field.getType()) ? "is" : "get") + name);
-                        Class<?> type = field.getType();
-                        values.put(id.value(), TypeConverter.convert(method.invoke(entity), type));
+                        values.put(id.value(), TypeConverter.convert(method.invoke(entity), field.getType()));
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
