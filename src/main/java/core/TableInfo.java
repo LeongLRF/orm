@@ -46,7 +46,7 @@ public class TableInfo {
     /**
      * 缓存过期时间
      */
-    private int expireTime;
+    private long expireTime;
 
     List<String> columns() {
         return columns.values().stream().map(ColumnInfo::getName).collect(Collectors.toList());

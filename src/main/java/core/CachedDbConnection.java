@@ -33,12 +33,13 @@ public final class CachedDbConnection extends DbConnection {
         super(connection, config);
         this.jedisPool = jedisPool;
     }
+
     public CachedDbConnection(Configuration configuration) throws SQLException {
-        super(configuration.dataSource,configuration);
+        super(configuration.dataSource, configuration);
         this.jedisPool = configuration.jedisPool;
     }
 
-    public CachedDbConnection(DataSource dataSource, Configuration configuration,JedisPool jedisPool) throws SQLException {
+    public CachedDbConnection(DataSource dataSource, Configuration configuration, JedisPool jedisPool) throws SQLException {
         super(dataSource, configuration);
         this.jedisPool = jedisPool;
     }
@@ -145,8 +146,8 @@ public final class CachedDbConnection extends DbConnection {
         return tableInfo.getTableName();
     }
 
-    private void setValue(String value, String key, int seconds) {
-        op(j -> j.setex(key, seconds, value));
+    private void setValue(String value, String key, long seconds) {
+        op(j -> j.setex(key, (int) seconds, value));
     }
 
     private <T> void setValue(T entity) {
