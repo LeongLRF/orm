@@ -80,12 +80,15 @@ public class DbConnection implements IDbConnection {
                 int genFlag = isAuto ? java.sql.Statement.RETURN_GENERATED_KEYS : java.sql.Statement.NO_GENERATED_KEYS;
                 p = statement.createPreparedStatement(c, genFlag);
                 int row = p.executeUpdate();
-                ResultSet rs = p.getGeneratedKeys();
-                Object key = 0;
-                if (rs.next()) {
-                    key = rs.getObject(row);
+                if (isAuto) {
+                    ResultSet rs = p.getGeneratedKeys();
+                    Object key = 0;
+                    if (rs.next()) {
+                        key = rs.getObject(row);
+                    }
+                    return key;
                 }
-                return key;
+                return 1;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -100,9 +103,9 @@ public class DbConnection implements IDbConnection {
             try {
                 p = c.prepareStatement(p3._2());
                 setParams(p, p3._3());
-                List<T> list = (List<T>) EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(p.executeQuery()));
                 logger.info("Execute SQL : " + p3._2());
                 logger.info("Params : " + p3._3().toString());
+                List<T> list = (List<T>) EntityUtil.resultSetToEntity(p3._1(), fetchResultSet(p.executeQuery()));
                 return list;
             } catch (SQLException e) {
                 e.printStackTrace();

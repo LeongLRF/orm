@@ -31,7 +31,7 @@ public class Test {
         User user = new User();
         user.setTrueName("fengfeng");
         long start = System.currentTimeMillis();
-        System.out.println(db.insert(user));
+        db.form(User.class).toList();
         System.out.println(System.currentTimeMillis() - start + "ms");
     }
 }
