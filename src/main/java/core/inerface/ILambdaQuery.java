@@ -82,4 +82,6 @@ public interface ILambdaQuery<T> extends Fun {
     default Object sum(SFunction<T, Object> f) {
         return sum(TableInfoCache.convertToFieldName(f));
     }
+
+    ILambdaQuery<T> select(SFunction<T,Object> f);
 }
