@@ -66,11 +66,11 @@ public class Statement implements IStatement {
     static <T> Statement createUpdateStatement(Class<T> cls, Consumer<T> updates, Object id) {
         T entity = DbConnection.createEntity(cls);
         updates.accept(entity);
-        return createUpdateStatement(entity, id, cls);
+        return createUpdateStatement(entity, id);
     }
 
-    static <T> Statement createUpdateStatement(T entity, Object id, Class<T> cls) {
-        TableInfo tableInfo = EntityUtil.getTableInfo(cls);
+    static <T> Statement createUpdateStatement(T entity, Object id) {
+        TableInfo tableInfo = EntityUtil.getTableInfo(entity.getClass());
         P2<String, List<Object>> setsAndObj = getSets(entity);
         List<Object> objects = setsAndObj._2();
         objects.add(id);
