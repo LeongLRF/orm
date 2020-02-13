@@ -74,9 +74,16 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
         return this;
     }
 
+
     @Override
     public List<T> toList() {
         return db.genExecute(makeSql());
+    }
+
+    @Override
+    public ILambdaQuery<T> select(SFunction<T, Object> f) {
+        selects = " "+TableInfoCache.convertToFieldName(f)+" ";
+        return null;
     }
 
     private P3<Class<?>, String, List<Object>> makeSql() {
