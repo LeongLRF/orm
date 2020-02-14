@@ -122,6 +122,7 @@ public interface ISelectQuery<T> extends Fun {
      */
     ILambdaQuery<T> lambdaQuery();
 
+
     /**
      * whereEq 动态查询
      *
