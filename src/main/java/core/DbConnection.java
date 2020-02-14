@@ -147,6 +147,7 @@ public class DbConnection implements IDbConnection {
         long start = System.currentTimeMillis();
         if (entity instanceof TimeStampEntity) {
             ((TimeStampEntity) entity).setInsertedAt(new Timestamp(System.currentTimeMillis()));
+            ((TimeStampEntity) entity).setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         }
         IStatement statement = Statement.createInsertStatement(entity);
         Object index = execute(statement, statement.isAuto());
