@@ -3,6 +3,7 @@ package core;
 import core.inerface.IDbConnection;
 import core.inerface.ILambdaQuery;
 import core.inerface.IStatement;
+import core.support.Page;
 import core.support.SFunction;
 import core.support.TableInfoCache;
 import fj.P;
@@ -25,6 +26,7 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     private String selects = "*";
     private List<IStatement> wheres = new ArrayList<>(16);
     private List<Object> prams = new ArrayList<>(16);
+    private String limit = "";
 
     LambdaQuery(Class<T> cls, IDbConnection db, TableInfo tableInfo) {
         this.cls = cls;
@@ -65,6 +67,12 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
     }
 
     @Override
+    public ILambdaQuery<T> limit(int form, int to) {
+        this.limit = " limit " + form + " , " + to;
+        return this;
+    }
+
+    @Override
     public ILambdaQuery<T> between(SFunction<T, Object> column, Object value, Object value2) {
         IStatement statement = new Statement();
         statement.setSql(TableInfoCache.convertToFieldName(column) + " BETWEEN ? AND ?");
@@ -72,6 +80,13 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
         statement.getParams().add(value2);
         wheres.add(statement);
         return this;
+    }
+
+    @Override
+    public Page<T> page(int current, int pageSize) {
+        long total = toList().size();
+        List<T> data = limit(current * pageSize, pageSize).toList();
+        return new Page<>(total, current, pageSize, data);
     }
 
 
@@ -82,14 +97,14 @@ public class LambdaQuery<T> implements ILambdaQuery<T> {
 
     @Override
     public ILambdaQuery<T> select(SFunction<T, Object> f) {
-        selects = " "+TableInfoCache.convertToFieldName(f)+" ";
+        selects = " " + TableInfoCache.convertToFieldName(f) + " ";
         return null;
     }
 
     private P3<Class<?>, String, List<Object>> makeSql() {
         if (!wheres.isEmpty()) {
             freshSql();
-            this.selectSql = selectSql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(","));
+            this.selectSql = selectSql + " WHERE " + wheres.stream().map(IStatement::getSql).collect(Collectors.joining(",")) + this.limit;
             prams.addAll(wheres.stream().flatMap(it -> it.getParams().stream()).collect(Collectors.toList()));
         }
         return P.p(cls, this.selectSql, this.prams);

@@ -1,5 +1,6 @@
 package core.inerface;
 
+import core.support.Page;
 import core.support.SFunction;
 import core.support.TableInfoCache;
 
@@ -40,6 +41,11 @@ public interface ILambdaQuery<T> extends Fun {
     ILambdaQuery<T> in(SFunction<T, Object> column, List<Object> values);
 
     /**
+     * limit 查询
+     */
+    ILambdaQuery<T> limit(int form ,int to);
+
+    /**
      * between查询 例如 select * from table where xxx between xxx and xxx
      *
      * @param column 字段
@@ -48,6 +54,13 @@ public interface ILambdaQuery<T> extends Fun {
      * @return ILambdaQuery
      */
     ILambdaQuery<T> between(SFunction<T, Object> column, Object value, Object value2);
+    /**
+     * 分页查询
+     * @param current 当前页
+     * @param pageSize 每页大小
+     * @return Page
+     */
+    Page<T> page(int current, int pageSize);
 
     /**
      * 启动查询
