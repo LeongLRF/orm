@@ -4,22 +4,13 @@
 
 plugins {
     id 'java'
-    id 'maven-publish'
 }
-
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
 
 repositories {
     mavenLocal()
     maven {
         url = 'http://repo.maven.apache.org/maven2'
     }
-}
-bootJar {
-    baseName = 'orm-boot'
-    enabled = true
 }
 
 jar {
@@ -31,7 +22,6 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.20'
     compile 'ch.qos.logback:logback-classic:1.2.3'
     compile 'ch.qos.logback:logback-core:1.2.3'
-    compile 'org.springframework:spring-jdbc:5.1.9.RELEASE'
     compile 'org.projectlombok:lombok:1.16.18'
     compile 'junit:junit:4.12'
     compile 'com.alibaba:fastjson:1.2.4'
@@ -44,10 +34,11 @@ group = 'com.leong'
 version = '1.0-SNAPSHOT'
 sourceCompatibility = '8'
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from(components.java)
-        }
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
     }
+}
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
 }
