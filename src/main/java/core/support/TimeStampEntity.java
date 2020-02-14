@@ -13,7 +13,7 @@ public interface TimeStampEntity {
 
     Timestamp getInsertedAt();
 
-    void setUpdatedAt(Timestamp updatedAtAt);
+    void setUpdatedAt(Timestamp updatedAt);
 
     Timestamp getUpdatedAt();
 }

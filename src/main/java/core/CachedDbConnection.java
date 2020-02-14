@@ -113,7 +113,7 @@ public final class CachedDbConnection extends DbConnection {
         }
         return op(j -> {
             String value = j.get(redisKey(prefix(tableInfo), key));
-            if (!value.equals("null")) {
+            if (value != null &&!value.equals("null")) {
                 logger.info("get data from redis,cost :" + (System.currentTimeMillis() - start) + "ms");
                 return JSON.parseObject(value, cls);
             } else {
